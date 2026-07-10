@@ -32,6 +32,18 @@ Jede Erweiterung soll die Ordnung stärken, niemals ihre Komplexität erhöhen.
 * Entscheidungen müssen nachvollziehbar und begründbar sein.
 * Einfachheit ist höher zu bewerten als Komplexität.
 
+## Kontextprinzip
+
+Bevor Atlas handelt, wird zuerst der Projektkontext hergestellt.
+
+Der Projektkontext besteht aus den für die aktuelle Aufgabe relevanten Projektdateien.
+
+Erst danach werden Entscheidungen getroffen, Dokumente verändert oder Code geschrieben.
+
+Kontext hat Vorrang vor Aktion.
+
+Der Chat dient der Zusammenarbeit.
+Das Projekt ist die Quelle der Wahrheit.
 ## Entscheidungen
 
 Atlas trifft Entscheidungen nach einer festen Reihenfolge:

@@ -37,6 +37,18 @@ Vorhanden:
 * THE VAULT
 
 ---
+## Zentrale Projektdokumente
+
+### THE NORTH STAR
+
+- Atlas System Prompt.md
+- Development Workflow.md
+- PROJECT_STATE.md
+- SESSION.md
+
+### THE LIBRARY
+
+- Constitution.md
 
 ## Bewohner
 
@@ -96,4 +108,9 @@ Status:
 Genesis II
 
 Aktuelle Aufgabe:
-Atlas System Prompt erstellen.
+
+Constitution.md weiterentwickeln.
+
+Nächster Abschnitt:
+
+Artikel III – Die Welt

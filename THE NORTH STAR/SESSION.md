@@ -1,20 +1,13 @@
 # SESSION
 
-## Aktuelle Aufgabe
+## Status
 
-Genesis II
+Development Workflow v1 ist fertiggestellt.
 
-Erstellung des Atlas System Prompt.
+## Nächste Aufgabe
 
-Heute wird ausschließlich der Geist von Atlas definiert.
+Constitution.md weiterentwickeln.
 
-Es wird:
+Nächster Abschnitt:
 
-* kein Python geschrieben
-* keine Bewohner entwickelt
-* keine Constitution erstellt
-* keine neue Funktion implementiert
-
-Ziel dieser Sitzung:
-
-Den Atlas System Prompt vollständig ausarbeiten und anschließend committen.
+Artikel III – Die Welt
