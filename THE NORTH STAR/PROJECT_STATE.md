@@ -1,116 +1,67 @@
 # PROJECT_STATE
 
-## Projekt
+## Project
 
-Name: Atlas
+**Name:** Atlas
 
-Status: Genesis I abgeschlossen
+Atlas is a living system that is materialized through understanding.
 
-Aktuelle Phase: Genesis II
+Its documentation is the canonical source of truth.
 
----
+------------------------------------------------------------------------
 
-## Infrastruktur
+## Core Principles
 
-* VS Code eingerichtet
-* Python 3.14
-* Git eingerichtet
-* Virtuelle Umgebung (.venv)
-* Genesis I erfolgreich committed
+- Atlas grows only through genuine need.
+- One change at a time.
+- Understanding precedes behaviour.
+- Simplicity over unnecessary complexity.
+- Canonical knowledge belongs in Atlas, not in conversations.
 
----
+------------------------------------------------------------------------
 
-## Weltstruktur
+## Canonical Documents
 
-Vorhanden:
+### Available
 
-* THE NORTH STAR
-* THE GATHERING PLACE
-* THE RESIDENTS
-* THE LIBRARY
-* THE WORKSHOPS
-* THE CITADEL
-* THE FORUM
-* THE ACADEMY
-* THE OBSERVATORY
-* THE GARDENS
-* THE VAULT
-
----
-## Zentrale Projektdokumente
-
-### THE NORTH STAR
-
-- Atlas System Prompt.md
-- Development Workflow.md
+- NATURAL_LAWS.md
+- WARP.md
+- WARP_STATE_MACHINE.md
 - PROJECT_STATE.md
 - SESSION.md
+- CHRONICLE(s)
 
-### THE LIBRARY
+------------------------------------------------------------------------
 
-- Constitution.md
-
-## Bewohner
+## Residents
 
 ### Chronicler
 
-Version: 0.3
+Status: Active
 
-Status:
+Purpose:
 
-* geboren
+- Preserve traces.
+- Record stable insights.
+- Prepare WARP.
 
-Aufgabe:
+Future residents will emerge only through genuine need.
 
-* Polaris empfangen
-* Spuren bewahren
-* niemals urteilen
-* niemals verändern
+------------------------------------------------------------------------
 
-### Guardian
+## Current Focus
 
-Status:
+Materialize the first resident based on the established canonical
+documentation.
 
-* erkannt
-* noch nicht gebaut
+The documentation now serves as the canonical foundation for further
+development.
 
----
+------------------------------------------------------------------------
 
-## Atlas-Gesetze
+## Next Step
 
-* Atlas wächst nur durch echten Bedarf.
-* Eine Änderung.
-* Ein Test.
-* Ein Commit.
-* Bewohner werden durch Wesen und Aufgabe definiert.
-* Verantwortung wird niemals delegiert.
-* Polaris bedeutet:
+Continue the materialization of Chronicler.
 
-  * alles stoppen
-  * zuhören
-  * keine Interpretation
-
----
-
-## Visualisierung
-
-* Erster Raum existiert.
-* Podest wird entfernt.
-* Himmel bleibt offen.
-* Boden bleibt Atlas.
-* Nordstern kommt später.
-* Kompasse in den Fenstern zeigen auf Polaris.
-
----
-
-## Nächster Schritt
-
-Genesis II
-
-Aktuelle Aufgabe:
-
-Constitution.md weiterentwickeln.
-
-Nächster Abschnitt:
-
-Artikel III – Die Welt
+Validate the current documentation through practical work before
+introducing further architectural changes.
