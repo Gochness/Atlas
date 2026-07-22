@@ -1,7 +1,7 @@
 from pathlib import Path
 
 # Atlas-Hauptordner
-atlas = Path(".")
+atlas = Path(__file__).resolve().parent.parent
 
 # Kontinente von Atlas
 continents = [
