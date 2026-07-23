@@ -189,3 +189,5 @@ unabhaengige Instanz ohne Kenntnis des Vorhabens. Erst danach Commit.
 Erst nach dem Commit entscheiden, ob Guardian materialisiert wird -
 und falls ja, ausdruecklich als vorlaeufige Materialisierung unter
 dokumentierter Abhaengigkeit von der offenen Entscheidungsarchitektur.
+
+Der Workspace-Bedarf begründet kein neues Law. Kandidat: Status behauptet Prüfung, Prüfung stammt faktisch von der schreibenden Instanz. Gegenversuch 1 (Status als "wer hat wann was geprüft") trägt. Gegenversuch 2 (Law IV: nicht ersetzbares Urteil = unzulässige Bindung) trägt. Beide tragen, sagen aber Verschiedenes — 1 fordert Notation, 2 fordert Ersetzbarkeit. Nicht verschmelzen. Folge: Workspace ist Ebene 3. Herkunft: Kandidat wurde vom Autor zurückgezogen, nachdem beide Gegenversuche standhielten.

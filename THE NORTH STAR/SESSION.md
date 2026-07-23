@@ -157,3 +157,6 @@ preservation method.
 
 It is not a Natural Law and may change if a better materialization is
 discovered.
+
+Versuchsaufbau Gegenlesen: durchgeführt, aber abweichend (Protokollexport misslungen)
+V7: Unterscheidung kontingente vs. strukturelle Unentscheidbarkeit. Status: Vermutung, ein Fall, Notwendigkeitsnachweis nicht erbracht
