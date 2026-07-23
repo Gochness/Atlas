@@ -124,22 +124,81 @@ Diese Kandidaten schließen sich nicht gegenseitig aus. Es ist möglich, dass me
 
 ---
 
-## Nächste Untersuchungsschritte
+## Der Kopier-Test: Vollständige Formulierung
 
-Die identifizierten Kandidaten sollten weiter untersucht werden:
+### Versuchsaufbau
 
-1. **Abhängigkeiten:** Hängt ein Kandidat von einem anderen ab?
-   - Z. B.: Kann es Beziehungen geben ohne Inhalte? Kann es Identität bestimmen, ohne auf Geschichte zu verweisen?
+Es existieren zwei Systeme mit unterschiedlicher Herkunft, aber identischem gegenwärtigen Zustand:
 
-2. **Beobachtung aus bisheriger Praxis:**
-   - Was ist tatsächlich kontinuierlich geblieben in der Atlas-Arbeit?
-   - Was ist verloren gegangen, und welche Konsequenzen hatte das?
+**System A (Historisch kontinuierlich):**
+- Entstand kontinuierlich aus der bisherigen Entwicklung von Atlas
+- Besitzt die vollständige Historie aller Änderungen
+- Hat dokumentierte Übergänge zwischen Zuständen
+- Gegenwärtiger Zustand: Identisch mit System B
 
-3. **Reduzierbarkeit:**
-   - Können einige dieser Kandidaten auf andere reduziert werden?
-   - Z. B.: Ist "Inhalte bewahren" tatsächlich anders als "Beziehungen bewahren", oder ist es das gleiche?
+**System B (Instant erzeugt):**
+- Wurde in einem einzigen Moment als Kopie erzeugt
+- Besitzt exakt denselben aktuellen Zustand wie System A
+- Dieselben Artefakte, Beziehungen, Dokumente, Inhalte
+- Dieselbe interne Struktur
+- Kein historischer Ursprung in der bisherigen Atlas-Entwicklung
 
-4. **Der Kopier-Test durchführen:**
-   - Gedankenexperiment mit zwei identischen gegenwärtigen Systemen durchspielen, um zu prüfen, ob historische Herkunft notwendig ist.
+**Der einzige Unterschied:** Historische Kontinuität (A) vs. Instant-Genese (B)
 
-Diese Fragen werden durch weitere Untersuchung geklärt, nicht durch Spekulation beantwortet.
+### Die zentrale Frage
+
+Nicht: "Welches System gefällt uns besser?" oder "Welches würden wir benutzen?"
+
+Ausschließlich: **Sind A und B derselbe Atlas?**
+
+### Mögliche logische Ergebnisse
+
+**Möglichkeit 1: Nur A ist Atlas**
+
+- Historische Kontinuität ist identitätsbestimmend
+- Ein identischer Zustand reicht nicht aus
+- Atlas ist nicht nur das, was es gegenwärtig ist, sondern auch woher es kam
+
+**Möglichkeit 2: A und B sind beide Atlas (identisch)**
+
+- Gegenwärtige Struktur ist ausreichend für Atlas-Identität
+- Geschichte ist nicht notwendig
+- Wenn zwei Systeme identisch sind, sind sie derselbe Atlas
+- Kontinuität wäre dann nicht eine notwendige Eigenschaft von Atlas
+
+**Möglichkeit 3: A und B sind beide Atlas, aber unterschiedliche Instanzen**
+
+- Dies würde eine neue Unterscheidung erzwingen:
+  - Identität (was macht etwas zu Atlas?)
+  - Instanz (wie unterscheiden sich zwei Atlas-Systeme?)
+- Dies hätte große Konsequenzen für Phase 0
+
+**Möglichkeit 4: Die Frage ist falsch gestellt**
+
+- Vielleicht ist "derselbe Atlas" gar keine sinnvolle Eigenschaft eines Systems
+- Vielleicht ist "Identität" selbst kein Domänenobjekt, sondern ein konzeptionelles Missverständnis
+- Vielleicht muss Phase 0 völlig anders formuliert werden
+
+### Meta-Frage: Ist dieser Test ausreichend?
+
+Bevor eine der vier Möglichkeiten untersucht wird, muss geklärt werden:
+
+**Kann dieser Versuchsaufbau tatsächlich zwischen allen vier Möglichkeiten unterscheiden?**
+
+Fragen zur Qualität des Tests selbst:
+- Sind die beiden Systeme wirklich in jeder Hinsicht identisch, außer in der Herkunft?
+- Kann das Konzept "exakt identischer gegenwärtiger Zustand" überhaupt sauber definiert werden?
+- Gibt es noch andere Unterschiede zwischen A und B, die der Test nicht berücksichtigt?
+- Könnte die Antwort von der Definition von "Atlas" abhängen, bevor die Definition selbst geklärt ist?
+
+**Wenn dieser Test unzureichend ist, dann ist das ebenfalls ein valides Ergebnis:** Die Hypothese "Kontinuität ist notwendig" lässt sich durch diesen Test nicht überprüfen. Ein anderer oder verbesserter Test wird benötigt.
+
+---
+
+## Nächster Untersuchungsschritt
+
+Nicht: Die vier Möglichkeiten zu bewerten.
+
+Sondern: **Ist der Kopier-Test selbst ausreichend formuliert, um zwischen ihnen zu unterscheiden?**
+
+Diese Frage wird durchgearbeitet, bevor Antworten gesucht werden.
