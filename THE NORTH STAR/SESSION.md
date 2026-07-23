@@ -85,6 +85,39 @@ Reason:
 Observed only in the current workflow.
 
 ------------------------------------------------------------------------
+------------------------------------------------------------------------
+
+## Gegenlesen 2026-07-23
+
+Durchgeführt: Konsistenzprüfung des Chronicles durch eine unabhängige
+Instanz ohne Kontext.
+
+Grund für Abweichung vom Plan: Der geplante Versuch (Gegenlesen gegen
+das Rohprotokoll) war nicht durchführbar. Der Export des Chatprotokolls
+misslang (Drucken und SingleFile lieferten nur den letzten Ausschnitt).
+Damit bleibt V1 ungeprüft: Ob ein unabhängiger Leser ohne Kenntnis der
+Absicht Auslassungen findet, konnte nicht getestet werden.
+
+Ersatzweise: Konsistenzprüfung ohne Protokoll. Der Chronicles wurde auf
+innere Widersprüche geprüft.
+
+Ergebnis: 5 Funde gemeldet. Nach vorher festgelegten Kriterien zählten 2:
+- G3: "trägt ohne Dehnung" wurde als bestaetigt dargestellt, ohne die
+  offene Flanke (Duhem-Quine) zu kennzeichnen
+- G4: Die Herleitung zur Dehnung stand ohne Verweis auf V3 (offene
+  Reichweite des Begriffs)
+
+Beide sind im Chronicle korrigiert.
+
+3 Funde verworfen, alle mit Belegstelle dokumentiert (beruhten darauf,
+dass der Pruefer die Statuslogik nicht kannte - genau das war
+vorhergesagt).
+
+Beobachtung: G3, G4 und die beiden vor dem Gegenlesen gefundenen Funde
+(F1, F2) sind derselbe Fehlertyp - eine Aussage steht als bestaetigt
+ohne Kennzeichnung ihrer offenen Flanke. Vier Faelle an einem Dokument.
+Reichweite: belastbar ist "in diesem Dokument mehrfach aufgetreten",
+nicht "Chronicler erzeugt diesen Fehlertyp".
 
 ## Next Action
 
