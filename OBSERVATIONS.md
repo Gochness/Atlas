@@ -32,6 +32,37 @@ Eine einzelne Beobachtung. Noch keine Regel. Ein weiterer ähnlicher Fall würde
 
 ---
 
+## Beobachtung 002: Begriffsänderungen und konzeptionelle Tiefe
+
+**Kontext:** Zweiter Praxisdurchlauf des HANDOFF-Prozesses mit einem Änderungsvorschlag zu APA-001 (Ersetzung "logisch primär" durch "axiomatisch primär").
+
+**Beobachtung:**
+
+Eine Begriffsänderung kann eine weitergehende konzeptionelle Änderung darstellen, nicht nur eine sprachliche Verbesserung.
+
+In diesem Fall: "Axiomatisch" führt einen neuen theoretischen Rahmen ein, der in Phase 0 bislang nicht explizit vorhanden ist.
+
+**Beispiel aus dem Test:**
+
+Der Beitrag erklärt, warum "axiomatisch" sprachlich präziser wirkt. Er erklärt nicht, warum Atlas diesen philosophischen Begriff benötigt oder ob Phase 0 bereits axiomatisch argumentiert.
+
+**Konsequenz für Prüfung:**
+
+Die Rückgabe war konkret: Beantworte diese Fragen:
+- Welche Eigenschaft beschreibt "axiomatisch", die "logisch primär" nicht beschreibt?
+- Ist Atlas überhaupt auf einer axiomatischen Methode aufgebaut?
+- Entsteht durch den Begriff eine neue Annahme, die Phase 0 bislang bewusst vermieden hat?
+
+**Warum ist das interessant?**
+
+In echten Projekten ist dies ein häufiger Fall: Gute Idee, aber die Begründung verpasst eine Ebene. Der Rückgabe-Pfad ermöglicht hier eine konstruktive Nacharbeit, ohne die Idee zu verwerfen.
+
+**Status:**
+
+Eine zweite Beobachtung. Noch keine Regel. Ein drittes ähnliches Muster würde ein stabiles Verhalten anzeigen.
+
+---
+
 ## Offene Fragen
 
 Diese Beobachtung wirft Fragen auf, die noch nicht beantwortet sind:
