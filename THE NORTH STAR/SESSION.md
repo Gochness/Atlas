@@ -442,3 +442,37 @@ Prüfweg selbsttragend ist.
 Nächster Block: Infrastruktur.
 Welche minimale Infrastruktur ist notwendig, damit Artefakte und
 Protokollregeln praktisch funktionieren?
+
+------------------------------------------------------------------------
+
+## 2026-07-24 – Plattformgrenze und Prüfungstypen (bestätigungsfähig)
+
+Plattformgrenze:
+Die Plattform erzwingt ausschließlich strukturableitbare Prüfungen.
+Semantische Prüfungen werden nicht automatisch entschieden, sondern
+zur Prüfung vorgelegt.
+
+Zweiteilung der Prüfungstypen:
+- Strukturableitbar: Ergebnis folgt vollständig aus der Struktur
+  (Format gültig, Referenz auflösbar, Artefakt existiert).
+- Semantisch: Prüfung verlangt Bedeutungsverständnis
+  (trägt die Beobachtungsbasis? ist der Prüfweg selbsttragend?).
+
+Trennlinie verläuft nicht zwischen Feldern, sondern innerhalb der
+Prüfung eines Feldes. Komplexere Prüfungen entstehen als Komposition
+dieser beiden Primitive, nicht als eigener Typ.
+
+Gegenversuch Konsistenzprüfung: zerfällt in strukturableitbaren und
+semantischen Teil – kein dritter Typ gefunden.
+
+Erkenntnisstand (bestätigungsfähig, kein universeller Anspruch):
+Jeder bisher untersuchte Prüfvorgang lässt sich vollständig in
+strukturableitbare und semantische Teilprüfungen zerlegen.
+
+Geminis zweites Review: trägt als Gegenversuch gegen "Git allein
+genügt". Schlussfolgerung "Plattform als Enforcer" zu stark –
+kollidiert mit Nicht-Mechanisierbarkeit semantischer Urteile.
+
+Nächste Phase: Implementierung.
+Der Validator implementiert ausschließlich strukturableitbare Regeln.
+Semantische Urteile bleiben außerhalb des automatischen Enforcements.
