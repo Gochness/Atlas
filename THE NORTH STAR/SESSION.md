@@ -327,3 +327,43 @@ keine Regel besitzt Vorrang vor den Beobachtungen, die sie erklären soll.
 Noch nicht Chronicle:
 Vollständige Netz-Struktur und Ableitungskette sind bestätigungsfähig,
 aber noch nicht durch Chronicle materialisiert.
+
+------------------------------------------------------------------------
+
+## 2026-07-24 – Gemini-Review und Präzisierung
+
+Gemini-Review (externer Interpretationsgegenversuch):
+Aussagen 1–4 logisch stabil.
+Punkt 5 ("keine Regel besitzt Vorrang vor Beobachtungen") trägt unter
+Randbedingung: Formulierung setzt implizit voraus, dass Beobachtungen
+validiert sind. Eine fehlerhafte Einzelbeobachtung mit absolutem Vorrang
+könnte eine funktionierende Regel korrumpieren.
+
+Auflösung: kein Strukturfehler, sondern Präzisierungslücke.
+Atlas behandelt Beobachtungen nicht atomar – eine Einzelbeobachtung
+ersetzt nie eine Regel.
+
+Präzisierte Formulierung (für Chronicle):
+Keine Regel besitzt Vorrang vor Beobachtungen, die sie wiederholt und
+unabhängig unter verschiedenen Bedingungen herausfordern und deren
+Gegenversuche scheitern.
+
+Einordnung: Präzisierung eines bestehenden Prinzips, kein neues Law.
+
+Vollständiger Ableitungsbogen (bestätigungsfähig):
+1. Formatkonformität ist semantisch.
+2. Materialisierung enthält urteilsabhängige Voraussetzungen.
+3. Law IV folgt daraus als Konsequenz.
+4. Geltungsbereich von Law IV: genau zwei semantische Prüfungen.
+5. Es gibt keinen privilegierten Erkenntnismechanismus.
+6. Geminis Review hat keine strukturelle Lücke, sondern eine
+   Präzisierungslücke gefunden.
+
+Noch nicht Chronicle:
+Beobachtung: es gibt zwei Klassen von Gegenversuchen –
+logische (widerlegen die Aussage) und Interpretationsgegenversuche
+(zeigen dass die Aussage missverständlich ist).
+Status: Vermutung, noch nicht Chronicle.
+
+Nächste Sitzung: Wie wird ein semantisches Urteil ersetzbar, ohne dass
+aus dem Ersetzungsmechanismus selbst Autorität entsteht?
