@@ -161,13 +161,39 @@ discovered.
 Versuchsaufbau Gegenlesen: durchgeführt, aber abweichend (Protokollexport misslungen)
 V7: Unterscheidung kontingente vs. strukturelle Unentscheidbarkeit. Status: Vermutung, ein Fall, Notwendigkeitsnachweis nicht erbracht
 
-## 2026-07-24 – Artefaktformat (in Arbeit)
+------------------------------------------------------------------------
 
-Feldsatz-Kandidat: Referenz, Behauptung, Beobachtungsbasis, Gegenversuche, Offene Punkte, Geltungsbereich
+## 2026-07-24 – Artefaktformat: Feldsatz-Nachweise
 
-Referenz: notwendig (Gegenversuch gescheitert)
-Geltungsbereich: schwacher Notwendigkeitsnachweis – Integration erzeugt Behauptung mit zwei Aufgaben
-Behauptung, Beobachtungsbasis, Gegenversuche, Offene Punkte: Kandidaten, noch ungeprüft
+Fünf Felder mit starkem Notwendigkeitsnachweis (jeweils separat geführt):
 
-Methodische Entscheidung: Ein Feld gehört nur dann ins Artefakt, wenn ein Gegenversuch zeigt,
-dass das Artefakt ohne es seinen Zweck nicht mehr erfüllt.
+Referenz: notwendig (stark) – ohne stabile Identität ist das Artefakt über seine
+Lebensdauer nicht eindeutig referenzierbar.
+
+Behauptung: notwendig (stark) – ohne explizite Behauptung besitzt das Artefakt
+keinen eindeutig bestimmten Erkenntnisgegenstand.
+
+Beobachtungsbasis: notwendig (stark) – Gegenversuche setzen die Beobachtungsbasis
+voraus und können sie nicht ersetzen (zirkuläre Abhängigkeit).
+
+Gegenversuche: notwendig (stark) – fehlendes Feld ist mehrdeutig: "keine
+durchgeführt", "nicht dokumentiert" oder "keine sinnvollen existierten" sind
+epistemisch verschieden und nicht unterscheidbar.
+
+Offene Punkte: notwendig (stark) – beschreiben bewusst die bekannten Grenzen
+des Wissens. Ohne sie entsteht systematisch verzerrtes Bild.
+
+Methodische Entscheidung: Ein Feld gehört nur dann ins Artefakt, wenn ein
+Gegenversuch zeigt, dass das Artefakt ohne es seinen Zweck nicht mehr erfüllt.
+
+Erkenntniszustand wird nicht als eigenes Feld gespeichert –
+er folgt aus den übrigen Feldern (kein Widerspruch möglich).
+
+Noch nicht Chronicle:
+
+Geltungsbereich: Kandidat (schwach) – Integration in die Behauptung erzeugt
+Behauptung mit zwei Aufgaben. Nachweis schwach, nicht bestätigt.
+
+Vollständigkeitsvermutung: Die fünf Felder gehen aus der Erkenntnismethode hervor
+statt konstruiert zu sein. Offener Gegenversuch: Existiert ein anderer notwendiger
+Feldsatz, der dieselbe Erkenntnismethode vollständig trägt?
