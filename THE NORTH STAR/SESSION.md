@@ -235,3 +235,57 @@ Noch nicht Chronicle:
 Nächster Abschnitt: Materialisierung und Einreichung.
 Erste Frage: Unter welchen Bedingungen darf ein Beitrag erstmals
 materialisiert werden?
+
+------------------------------------------------------------------------
+
+## 2026-07-24 – Eintragsprotokoll: Materialisierung und Einreichung
+
+Leitfrage: Unter welchen Bedingungen darf ein Beitrag erstmals materialisiert werden?
+
+Ergebnis 1 – Formatkonformität ist notwendig, aber nicht hinreichend.
+Ein Beitrag kann alle Felder formal füllen und trotzdem eine erfundene
+Beobachtungsbasis, nie durchgeführte Gegenversuche und willkürliche
+offene Punkte enthalten.
+
+Ergebnis 2 – Zusätzliche notwendige Eigenschaft: Rückführbarkeit.
+Jede Angabe muss auf etwas verweisen, das unabhängig geprüft werden kann
+(anderes Artefakt, benannte Beobachtung, reproduzierbarer Vorgang).
+Rückführbarkeit garantiert nicht Richtigkeit, sondern Prüfbarkeit.
+Richtigkeit zu verlangen hieße, die Prüfung vorwegzunehmen.
+Falsche Verweise sind prüfbar, erfundene nicht.
+
+Ergebnis 3 – Formatkonformität ist semantisch, nicht syntaktisch.
+Ein Feld ist nicht erfüllt, weil Text darin steht, sondern wenn es die Frage
+beantwortet, für die es existiert. Ein Feld hat zwei Ebenen: Existenz und
+semantische Funktion.
+
+Gegenversuch (Beitrag verweist korrekt auf A und B, erklärt aber nicht, wie
+die Behauptung daraus folgt): löst sich auf. Der Beitrag ist nicht
+formatkonform, weil "Quellen nennen" nicht "Stützung angeben" ist.
+Die Ableitung ist bereits Bestandteil der Beobachtungsbasis.
+
+Gegenversuch (gibt es eine rein mechanische Formatkonformitätsprüfung?):
+trägt nicht. Jeder syntaktische Stellvertreter lässt sich erfüllen, ohne die
+Frage zu beantworten – weil er nach Form fragt und die Frage nach Gehalt.
+
+Ergebnis 4 – Law IV als Konsequenz, nicht als Prämisse:
+Materialisierung setzt mindestens eine urteilsabhängige Eigenschaft voraus.
+→ Das Eintragsprotokoll braucht einen Urteilsschritt.
+→ Weil das Urteil nicht an eine Instanz gebunden sein darf, muss es
+  ersetzbar sein.
+
+Begrenzung: Gezeigt ist "kein syntaktisches Kriterium ersetzt die semantische
+Frage", NICHT "ein Mensch muss prüfen". Ein Modell, das liest und urteilt,
+erfüllt die Anforderung ebenso. Die stärkere Formulierung würde Atlas an
+Menschen binden und wäre selbst ein Law-IV-Verstoß.
+
+Noch nicht Chronicle:
+Nächster Themenblock: Wie wird ein Urteil ersetzbar, ohne dass seine
+Ersetzbarkeit selbst zur neuen Autorität wird?
+
+Teilfragen dort:
+- Was ist ein "Urteil" im Sinne von Atlas?
+- Welche Informationen muss ein Urteil hinterlassen, damit eine andere Instanz
+  es nachvollziehen und ersetzen kann?
+- Wann ersetzt eine zweite Instanz ein Urteil, wann ergänzt sie es nur?
+- Wie verhindert das Protokoll ein Abgleiten in Abstimmungs- oder Mehrheitslogik?
