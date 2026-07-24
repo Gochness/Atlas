@@ -160,3 +160,14 @@ discovered.
 
 Versuchsaufbau Gegenlesen: durchgeführt, aber abweichend (Protokollexport misslungen)
 V7: Unterscheidung kontingente vs. strukturelle Unentscheidbarkeit. Status: Vermutung, ein Fall, Notwendigkeitsnachweis nicht erbracht
+
+## 2026-07-24 – Artefaktformat (in Arbeit)
+
+Feldsatz-Kandidat: Referenz, Behauptung, Beobachtungsbasis, Gegenversuche, Offene Punkte, Geltungsbereich
+
+Referenz: notwendig (Gegenversuch gescheitert)
+Geltungsbereich: schwacher Notwendigkeitsnachweis – Integration erzeugt Behauptung mit zwei Aufgaben
+Behauptung, Beobachtungsbasis, Gegenversuche, Offene Punkte: Kandidaten, noch ungeprüft
+
+Methodische Entscheidung: Ein Feld gehört nur dann ins Artefakt, wenn ein Gegenversuch zeigt,
+dass das Artefakt ohne es seinen Zweck nicht mehr erfüllt.
