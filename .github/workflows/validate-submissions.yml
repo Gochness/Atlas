@@ -1,0 +1,36 @@
+﻿name: Validate Submissions
+
+on:
+  pull_request:
+    paths:
+      - 'THE WORKSHOPS/platform/submissions/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Validate changed submissions
+        run: |
+          files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
+            -- 'THE WORKSHOPS/platform/submissions/*.yaml')
+          if [ -z "$files" ]; then
+            echo "No submission files changed."
+            exit 0
+          fi
+          failed=0
+          for f in $files; do
+            echo "--- Validating: $f"
+            python "THE WORKSHOPS/platform/validator/validator.py" "$f" || failed=1
+          done
+          exit $failed
