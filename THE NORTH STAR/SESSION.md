@@ -367,3 +367,26 @@ Status: Vermutung, noch nicht Chronicle.
 
 Nächste Sitzung: Wie wird ein semantisches Urteil ersetzbar, ohne dass
 aus dem Ersetzungsmechanismus selbst Autorität entsteht?
+
+------------------------------------------------------------------------
+
+## 2026-07-24 – Urteilsartefakte (bestätigungsfähig)
+
+Urteilsartefakte benötigen keinen eigenen Feldsatz.
+Sie sind Spezialisierungen des allgemeinen Artefaktformats und unterscheiden
+sich ausschließlich durch den Gegenstand ihrer Behauptung.
+
+Vier Gegenversuche bestanden:
+1. Fehlt zwingend ein zusätzliches Feld? → Nein.
+2. Benötigt ein Urteil Quelleninformationen? → Nein. Identität begründet
+   keine semantische Stärke.
+3. Sind zwei identische Urteile ein Zeichen fehlender Unabhängigkeit? → Nein.
+   Gleicher Schluss kann Ergebnis unabhängiger Prüfwege sein.
+4. Lässt sich Eigenständigkeit ohne Quellenfeld ausdrücken? → Ja, über
+   Beobachtungsbasis und Gegenversuche.
+
+Unabhängigkeit ist eine Eigenschaft des Prüfwegs, nicht der Instanz.
+
+Noch nicht Chronicle:
+Offene Frage für nächsten Block: Welche Bedingungen muss ein Prüfweg
+erfüllen, damit ein Urteil als eigenständig gilt?
