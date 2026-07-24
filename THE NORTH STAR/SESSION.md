@@ -508,3 +508,26 @@ Ausdrücklich nicht aufgenommen:
 
 Abhängigkeit zwischen Submissions ist eine Protokollfrage, keine Formatfrage.
 target erlaubt je nach Typ eine oder mehrere Referenzen.
+
+------------------------------------------------------------------------
+
+## 2026-07-24 – Plattform: erster Modell-Einreichungsnachweis
+
+Submission-Service extrahiert:
+- submission_service.py: clientunabhängige Einreichungslogik (submit(), SubmissionResult)
+- submit.py: reiner CLI-Adapter
+- Architektur: Client → submit.py → submission_service.py → Git/GitHub
+
+Claude Code hat PR #2 selbstständig eingereicht:
+- S-0002.yaml erstellt, validiert, Branch erstellt, Commit gepusht, PR geöffnet
+- Enes hat keine Datei angelegt, keinen Git-Befehl ausgeführt
+- Erster praktischer Beweis: Modell kann Submission-Schnittstelle ohne Transportweg nutzen
+
+Einordnung:
+- Bestätigt: Claude Code als Client funktioniert
+- Bestätigt: technische Mensch-Modell-Zusammenarbeit funktioniert
+- Noch nicht bestätigt: Modellunabhängigkeit (braucht zweiten Client)
+- Noch offen: semantisches Urteil und Materialisierung in den Erkenntnisraum
+
+Law IV in der Praxis: Zugriff ≠ Autorität.
+Claude Code hat eingereicht. Es hat keine besondere Autorität erhalten.
