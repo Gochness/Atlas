@@ -415,3 +415,30 @@ Noch nicht Chronicle:
 Offene Protokollregel: das Eintragsprotokoll muss die Selbsttragend-
 Bedingung als explizite Protokollregel formulieren, nicht nur als
 Artefakteigenschaft.
+
+------------------------------------------------------------------------
+
+## 2026-07-24 – Eintragsprotokoll: Regel 2 (bestätigungsfähig)
+
+Eintragsprotokoll – Regel 2:
+Ein Urteil darf nur dann materialisiert werden, wenn sein Prüfweg
+selbsttragend ist.
+
+Definition Selbsttragend:
+Ein Prüfweg ist selbsttragend, wenn jede seiner tragenden Aussagen
+unmittelbar auf den geprüften Gegenstand oder auf offen referenzierte
+Artefakte zurückgeführt werden kann, ohne dass die Gültigkeit früherer
+Urteile vorausgesetzt werden muss.
+
+"Jede" lässt keine Ausnahmen: eine einzige nicht selbsttragende Aussage
+macht das gesamte Urteil nicht materialisierbar.
+
+Eintragsprotokoll vollständig:
+Regel 1: Widersprüche werden als eigene prüfbare Artefakte materialisiert –
+nicht aufgelöst, nicht verborgen, nicht automatisch bewertet.
+Regel 2: Ein Urteil darf nur dann materialisiert werden, wenn sein
+Prüfweg selbsttragend ist.
+
+Nächster Block: Infrastruktur.
+Welche minimale Infrastruktur ist notwendig, damit Artefakte und
+Protokollregeln praktisch funktionieren?
