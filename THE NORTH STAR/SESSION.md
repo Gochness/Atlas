@@ -531,3 +531,25 @@ Einordnung:
 
 Law IV in der Praxis: Zugriff ≠ Autorität.
 Claude Code hat eingereicht. Es hat keine besondere Autorität erhalten.
+
+------------------------------------------------------------------------
+
+## 2026-07-24 – Sitzungsabschluss: PR #2 semantisch abgelehnt
+
+PR #2 (S-0002, ART-0002) wurde semantisch abgelehnt, Überarbeitung erbeten.
+
+Die Ableitung der Unveränderlichkeit trägt.
+
+Drei Punkte tragen nicht:
+
+1. Felderfüllung unvollständig: Die Beobachtungsbasis erklärt nicht,
+   warum genau diese vier Bestandteile folgen.
+
+2. Herkunftsnachweis zieht Plattformobjekt in den Erkenntnisraum:
+   submission.id ist ein Plattformobjekt. Seine Aufnahme als Bestandteil
+   des Artefakts widerspricht der heute hergeleiteten Schichtentrennung.
+
+3. Fehlende Herleitung für counter und open: Warum sie nicht zum
+   materialisierten Artefakt gehören, ist nicht hergeleitet.
+
+Nächste Aktion: Behauptung auf Beobachtungsbasis zurückführen oder einschränken.
