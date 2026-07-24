@@ -197,3 +197,41 @@ Behauptung mit zwei Aufgaben. Nachweis schwach, nicht bestätigt.
 Vollständigkeitsvermutung: Die fünf Felder gehen aus der Erkenntnismethode hervor
 statt konstruiert zu sein. Offener Gegenversuch: Existiert ein anderer notwendiger
 Feldsatz, der dieselbe Erkenntnismethode vollständig trägt?
+
+------------------------------------------------------------------------
+
+## 2026-07-24 – Sichtbarkeitsregel (bestätigungsfähig)
+
+Alles Materialisierte darf sichtbar sein.
+Materialisierte Artefakte dürfen Vorwissen erzeugen. Sie dürfen niemals
+den Prüfweg ersetzen.
+
+Gegenversuche bestanden:
+- GV1: Alles sichtbar → trägt nicht (Richtung und Absicht werden bekannt)
+- GV2: Nur materialisierte Artefakte → Modell kann Themenbereich fortsetzen,
+  nicht exakten Gedankenschritt – kein Mangel, sondern Preis unabhängiger Beurteilung
+- GV3: Materialisierte Vorentscheidungen verletzen Unabhängigkeit → trägt nicht;
+  Unterschied ist Prüfweg vs. bloßes Urteil
+- GV4: Modell übernimmt Ergebnis ohne eigene Prüfung → Fehler des Eintragsprotokolls,
+  nicht der Sichtbarkeit
+- GV5: Widersprüchliche materialisierte Artefakte → Widerspruch ist Eigenschaft
+  des Erkenntnisstandes, kein Sichtbarkeitsproblem
+
+------------------------------------------------------------------------
+
+## 2026-07-24 – Eintragsprotokoll: Erster Grundsatz (bestätigungsfähig)
+
+Widersprüche werden nicht verborgen, aufgelöst oder automatisch bewertet.
+Sie werden als eigene prüfbare Artefakte materialisiert.
+Das Protokoll dokumentiert den möglichen Widerspruch – es entscheidet ihn nicht.
+
+Vier Bedingungen:
+1. Beide Beiträge werden unverändert materialisiert.
+2. Ihre Beziehung wird als eigenes Artefakt behandelt.
+3. Kein Widerspruchsstatus wird automatisch als bestätigt gesetzt.
+4. Keine Auflösung wird erzwungen.
+
+Noch nicht Chronicle:
+Nächster Abschnitt: Materialisierung und Einreichung.
+Erste Frage: Unter welchen Bedingungen darf ein Beitrag erstmals
+materialisiert werden?
