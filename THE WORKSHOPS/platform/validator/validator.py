@@ -3,7 +3,7 @@
 VALID_TYPES = {"artifact", "judgment", "contradiction"}
 VALID_ACTIONS = {"create", "update"}
 SUB_FIELDS = {"id", "type", "action", "target", "base_commit", "submitted_by", "submitted_at"}
-ART_FIELDS = {"ref", "claim", "basis", "counter", "open"}
+CAND_FIELDS = {"proposed_ref", "claim", "basis", "counter", "open"}
 HASH_RE = re.compile(r"^[0-9a-f]{7,40}$")
 
 def err(m): print(f"FAIL  {m}")
@@ -16,21 +16,21 @@ def validate(path):
         ok("YAML lesbar")
     except Exception as e:
         err(f"YAML Fehler: {e}"); return 1
-    for k in ("submission", "artifact"):
+    for k in ("submission", "candidate"):
         if k not in data: err(f"Schluessel fehlt: {k}"); n += 1
         else: ok(f"Schluessel {k} vorhanden")
     if n: return n
-    sub, art = data["submission"], data["artifact"]
+    sub, cand = data["submission"], data["candidate"]
     for f in SUB_FIELDS:
-        if f not in sub: err(f"Pflichtfeld fehlt: {f}"); n += 1
-    for f in ART_FIELDS:
-        if f not in art: err(f"Pflichtfeld fehlt: {f}"); n += 1
+        if f not in sub: err(f"Pflichtfeld fehlt in submission: {f}"); n += 1
+    for f in CAND_FIELDS:
+        if f not in cand: err(f"Pflichtfeld fehlt in candidate: {f}"); n += 1
     unk = set(sub) - SUB_FIELDS
     if unk: err(f"Unbekannte Felder submission: {unk}"); n += 1
     else: ok("Keine unbekannten Felder submission")
-    unk = set(art) - ART_FIELDS
-    if unk: err(f"Unbekannte Felder artifact: {unk}"); n += 1
-    else: ok("Keine unbekannten Felder artifact")
+    unk = set(cand) - CAND_FIELDS
+    if unk: err(f"Unbekannte Felder candidate: {unk}"); n += 1
+    else: ok("Keine unbekannten Felder candidate")
     if n: return n
     ok("Alle Pflichtfelder vorhanden")
     if sub["type"] not in VALID_TYPES: err(f"Ungueltig type: {sub['type']}"); n += 1
@@ -45,10 +45,9 @@ def validate(path):
     elif t in ("judgment","contradiction") and not tgt: err(f"{t} erfordert target"); n += 1
     elif a == "create" and t == "artifact" and tgt is not None: err("create artifact erfordert target=null"); n += 1
     else: ok("target OK")
-    if isinstance(art, list): err("artifact darf keine Liste sein"); n += 1
-    else: ok("Genau ein Artefakt")
+    if isinstance(cand, list): err("candidate darf keine Liste sein"); n += 1
+    else: ok("Genau ein Kandidat")
     print(); print(f"ERGEBNIS: {'OK' if not n else str(n)+' Fehler'}")
     return n
 
-import sys
 sys.exit(validate(sys.argv[1]) if len(sys.argv)==2 else (print("Verwendung: python validator.py <datei.yaml>") or 1))
