@@ -24,15 +24,15 @@ jobs:
 
       - name: Validate changed submissions
         run: |
-          files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD \
-            -- 'THE WORKSHOPS/platform/submissions/*.yaml')
-          if [ -z "$files" ]; then
+          git diff --name-only origin/${{ github.base_ref }}...HEAD \
+            -- 'THE WORKSHOPS/platform/submissions/*.yaml' > /tmp/changed_files.txt
+          if [ ! -s /tmp/changed_files.txt ]; then
             echo "No submission files changed."
             exit 0
           fi
           failed=0
-          for f in $files; do
+          while IFS= read -r f; do
             echo "--- Validating: $f"
             python "THE WORKSHOPS/platform/validator/validator.py" "$f" || failed=1
-          done
+          done < /tmp/changed_files.txt
           exit $failed
