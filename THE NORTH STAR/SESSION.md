@@ -476,3 +476,35 @@ kollidiert mit Nicht-Mechanisierbarkeit semantischer Urteile.
 Nächste Phase: Implementierung.
 Der Validator implementiert ausschließlich strukturableitbare Regeln.
 Semantische Urteile bleiben außerhalb des automatischen Enforcements.
+
+------------------------------------------------------------------------
+
+## 2026-07-24 – Submission-Format (bestätigungsfähig)
+
+Eine Submission enthält genau ein Artefakt.
+
+Format:
+
+submission:
+  id:            # stabile Referenz der Einreichung
+  type:          # artifact | judgment | contradiction
+  action:        # create | update
+  target:        # bei update: eine Referenz; bei judgment/contradiction: eine oder mehrere
+  base_commit:   # gelesener maßgeblicher Git-Stand
+  submitted_by:  # technische Herkunft, kein Autoritätsmerkmal
+  submitted_at:  # technischer Zeitstempel
+
+artifact:
+  ref:           # stabile Referenz des eingereichten Artefakts
+  claim:         # Behauptung
+  basis:         # Beobachtungsbasis
+  counter:       # Gegenversuche
+  open:          # Offene Punkte
+
+Ausdrücklich nicht aufgenommen:
+- delete (kein Bedarf hergeleitet)
+- Abhängigkeitsfelder (kein Bedarf hergeleitet)
+- mehrere Artefakte pro Submission
+
+Abhängigkeit zwischen Submissions ist eine Protokollfrage, keine Formatfrage.
+target erlaubt je nach Typ eine oder mehrere Referenzen.
