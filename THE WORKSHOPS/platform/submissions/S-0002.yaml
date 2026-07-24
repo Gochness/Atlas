@@ -1,0 +1,45 @@
+submission:
+  id: S-0002
+  type: artifact
+  action: create
+  target: null
+  base_commit: 02239f9
+  submitted_by: claude-sonnet-4-6
+  submitted_at: 2026-07-24T00:00:00Z
+
+candidate:
+  proposed_ref: ART-0002
+  claim: >
+    Artefaktformat (bestätigungsfähig): Ein materialisiertes Artefakt besteht
+    aus mindestens vier Bestandteilen: kanonische Referenz (ART-XXXX),
+    Behauptungstext (claim), Begründungsgrundlage (basis) und
+    Herkunftsnachweis (die Submission-ID, durch die es erzeugt wurde).
+    Ein Artefakt ist nach Materialisierung unveränderlich; Änderungen
+    erfordern eine neue Submission mit action=update und target=<ref>.
+    Das Artefaktformat ist damit strikt vom Submission-Format getrennt:
+    Die Submission ist ein befristeter Vorschlag, das Artefakt ein
+    persistenter Erkenntniseintrag.
+  basis: >
+    ART-0001 hat die Schichtentrennung (Plattform / Erkenntnisraum) etabliert
+    und festgestellt, dass das Artefakt erst durch Materialisierung entsteht.
+    Aus dem Validator (VALID_ACTIONS = {create, update}) und der Regel
+    'update erfordert target' folgt, dass Artefakte identifizierbar und
+    referenzierbar sein müssen. Die Pflichtfelder claim und basis der
+    Submission liefern den Minimalinhalt, den ein Artefakt tragen muss.
+    Der Herkunftsnachweis ist durch base_commit und submission.id strukturell
+    bereits erzwungen; er gehört daher zum Artefakt selbst.
+  counter: >
+    Gegenversuch: Artefakt ohne Herkunftsnachweis (nur ref + claim + basis):
+    abgelehnt — Beweisbarkeit ist Kernprinzip (ART-0001, Quellenregel).
+    Gegenversuch: Artefakt als veränderliches Objekt: abgelehnt — update-
+    Submissions erzeugen einen neuen Eintrag, nicht eine stille Überschreibung;
+    Unveränderlichkeit sichert die Nachvollziehbarkeit der Erkenntniskette.
+    Gegenversuch: counter und open als Pflichtbestandteile des Artefakts:
+    offen gelassen — sie sind Submission-Felder und nicht zwingend im
+    materialisierten Artefakt enthalten.
+  open: >
+    Materialisierungsprozess selbst (wer, wann, unter welcher Bedingung)
+    noch nicht als Bedarf hergeleitet.
+    Versionierung bei update-Artefakten (Zähler, Zeitstempel) noch offen.
+    Verlinkung zwischen Artefakten (Voraussetzungsbeziehung) noch nicht
+    als Bedarf hergeleitet.
