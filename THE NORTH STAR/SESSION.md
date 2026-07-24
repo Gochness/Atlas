@@ -390,3 +390,28 @@ Unabhängigkeit ist eine Eigenschaft des Prüfwegs, nicht der Instanz.
 Noch nicht Chronicle:
 Offene Frage für nächsten Block: Welche Bedingungen muss ein Prüfweg
 erfüllen, damit ein Urteil als eigenständig gilt?
+
+------------------------------------------------------------------------
+
+## 2026-07-24 – Eigenständigkeit von Urteilen (bestätigungsfähig)
+
+Ein Prüfweg ist selbsttragend, wenn jede seiner tragenden Aussagen
+unmittelbar auf den geprüften Gegenstand oder auf offen referenzierte
+Artefakte zurückgeführt werden kann, ohne dass die Gültigkeit früherer
+Urteile vorausgesetzt werden muss.
+
+Präzisierungen:
+- Nicht "eigene Beobachtungsbasis" (Entstehungsweg), sondern
+  "selbsttragende Beobachtungsbasis" (Prüfbarkeit).
+- Nicht "Vertrauen" (psychologisch), sondern "Gültigkeit voraussetzen"
+  (strukturell).
+
+Gegenversuch bestanden:
+Fehlerhaftes Ausgangsartefakt – selbsttragend und Korrektheit des
+Ausgangsmaterials sind orthogonale Eigenschaften. Fehler in A endet
+bei A, diffundiert nicht ins Urteil.
+
+Noch nicht Chronicle:
+Offene Protokollregel: das Eintragsprotokoll muss die Selbsttragend-
+Bedingung als explizite Protokollregel formulieren, nicht nur als
+Artefakteigenschaft.
