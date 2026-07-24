@@ -289,3 +289,41 @@ Teilfragen dort:
   es nachvollziehen und ersetzen kann?
 - Wann ersetzt eine zweite Instanz ein Urteil, wann ergänzt sie es nur?
 - Wie verhindert das Protokoll ein Abgleiten in Abstimmungs- oder Mehrheitslogik?
+
+------------------------------------------------------------------------
+
+## 2026-07-24 – Eintragsprotokoll: Geltungsbereich Law IV und Ersetzbarkeit des Urteils
+
+Geltungsbereich von Law IV (bestätigungsfähig):
+Genau zwei semantische Prüfungen fallen unter Law IV:
+1. Felderfüllung – beantwortet das Feld tatsächlich seine Aufgabe?
+2. Semantische Rückführbarkeit – wird das referenzierte Material korrekt als
+   Stützung verwendet?
+
+Mechanische Voraussetzungen (Referenz eindeutig, Felder existieren, Syntax gültig)
+sind kein Urteil und fallen nicht unter Law IV.
+
+Ersetzbarkeit des Urteils (bestätigungsfähig, drei Gegenversuche bestanden):
+Ersetzbarkeit entsteht nicht durch Doppelprüfung oder Mehrheitsbildung,
+sondern dadurch, dass jedes Urteil selbst als prüfbares Artefakt materialisiert
+wird. Kein endgültiges Urteil – nur materialisierte Urteilsartefakte, die selbst
+angreifbar sind.
+
+Vollständige Netz-Struktur:
+Artefakte, Urteile und die Erkenntnismethode selbst sind angreifbar.
+Der Angriffsgrund entsteht durch Beobachtungen, nicht durch höhere Autorität.
+
+Präzisierung (keine neue Law):
+Beobachtungen besitzen Vorrang vor der Erkenntnismethode.
+Eine einzelne Beobachtung ersetzt die Methode nicht, besitzt aber das Recht,
+sie herauszufordern. Die Methode ist verpflichtet, jede Beobachtung zu erklären
+oder ihre Unvollständigkeit anzuerkennen.
+
+Ableitungskette:
+Formatkonformität semantisch → Materialisierung urteilsabhängig →
+Law IV als Konsequenz → Ersetzbarkeit schließt privilegierte Mechanismen aus →
+keine Regel besitzt Vorrang vor den Beobachtungen, die sie erklären soll.
+
+Noch nicht Chronicle:
+Vollständige Netz-Struktur und Ableitungskette sind bestätigungsfähig,
+aber noch nicht durch Chronicle materialisiert.
