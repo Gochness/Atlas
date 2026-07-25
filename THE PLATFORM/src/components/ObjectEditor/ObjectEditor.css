@@ -1,0 +1,49 @@
+.object-editor-header {
+  margin-bottom: 24px;
+}
+
+.object-editor-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #1c1c1e;
+}
+
+.object-editor-id {
+  margin: 4px 0 0 0;
+  font-size: 0.8rem;
+  color: #9a9a9e;
+}
+
+.object-editor-fields {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+}
+
+.object-editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.object-editor-field-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b6b70;
+}
+
+.object-editor-field-value {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #1c1c1e;
+  word-break: break-word;
+}
+
+.object-editor-field-empty {
+  color: #9a9a9e;
+}
