@@ -1,0 +1,34 @@
+submission:
+  id: S-0005
+  type: judgment
+  action: create
+  target: ART-0003
+  base_commit: cd643758969b18940be6ba83423f0784050104a7
+  submitted_by: claude-code
+  submitted_at: 2026-07-25T08:35:55Z
+
+candidate:
+  proposed_ref: JUDG-0001
+  claim: >
+    ART-0003 dokumentiert einen gültigen Beobachtungsfall: Zwischen
+    2547b0b und 0d66895 wurden Urteile gefällt, ohne dass PROJECT_STATE.md
+    dabei als Begründungsgrundlage diente. Die Behauptung ist durch die
+    Repository-Historie nachvollziehbar und der Prüfweg selbsttragend.
+  basis: >
+    ART-0003 benennt 37 Commits im untersuchten Zeitraum und zeigt für
+    jeden geprüften Gegenversuch (GV1–GV4), dass kein Urteil auf
+    PROJECT_STATE.md als tragende Aussage zurückgeführt werden konnte.
+    GV4 greift teilweise und ist im open-Feld korrekt ausgewiesen.
+    Der Prüfweg ist selbsttragend im Sinne von Regel 2 des Eintragsprotokolls.
+  counter: >
+    GV1 – Ist ART-0003 selbst ein Urteil über PROJECT_STATE.md statt
+    ein Beobachtungsfall? Scheitert – ART-0003 behauptet keine
+    Klassifizierung von PROJECT_STATE.md, sondern dokumentiert ausschließlich
+    die Abwesenheit einer Begründungsrolle im untersuchten Zeitraum.
+    GV2 – Ist der Abwesenheitsbeweis zu schwach für Materialisierung?
+    Scheitert – ART-0003 benennt die Schwäche ausdrücklich im open-Feld
+    und behauptet nicht mehr als beobachtet wurde. Das ist methodisch korrekt.
+  open: >
+    Ob die Beobachtung in ART-0003 hinreichend ist um PROJECT_STATE.md
+    als Betriebsobjekt zu klassifizieren, bleibt offen und ist nicht
+    Gegenstand dieses Urteils.
