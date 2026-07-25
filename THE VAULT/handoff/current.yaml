@@ -1,6 +1,6 @@
-timestamp: 2026-07-25T14:52:17Z
+timestamp: 2026-07-25T16:02:13Z
 active: claude-code
-head: 83aeac1cd9f869ce46304d35fd279a0b8b0a7315
-focus: S-0009 eingereicht (PR #9, ART-0007 – Absicht als primaeres Artefakt), WARP fortgeschrieben
-next: PR #9 pruefen und mergen, ART-0007 materialisieren, danach K1 und K2 einreichen
+head: 303ae34c3c4a9e29683fb8f7fb2c70a38b057399
+focus: work_item.py v0.1 auf master, PLATFORM_API_v1.md auf PR #12, S-0011/ART-0009 gemergt trotz Ablehnungsempfehlung
+next: PR #12 pruefen/mergen, offene API-Implementierungen schliessen, S-0011/ART-0009-Ueberarbeitung klaeren, PLATFORM_UX_v1.md
 status: in_progress
