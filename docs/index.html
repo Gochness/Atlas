@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlas Workspace</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <h1>Atlas Workspace</h1>
+    <p class="subtitle">Live-Ansicht des Atlas-Repositorys &mdash; direkt aus der GitHub API gelesen, keine eigene Datenhaltung.</p>
+    <div class="topbar-actions">
+      <button id="refresh-btn">Aktualisieren</button>
+      <span id="last-updated" class="last-updated"></span>
+    </div>
+  </div>
+</header>
+
+<main class="grid">
+
+  <section class="card card-wide" id="section-status">
+    <h2>Plattform-Gesamtstatus</h2>
+    <div id="status-badge" class="status-badge">&hellip;</div>
+    <div id="status-tables" class="status-tables">Lade PLATFORM_STATUS.md&hellip;</div>
+  </section>
+
+  <section class="card card-wide" id="section-next-step">
+    <h2>Letzter dokumentierter n&auml;chster Schritt</h2>
+    <div class="next-step-columns">
+      <div>
+        <h3>PROJECT_STATE.md &ndash; Next Step</h3>
+        <div id="next-step-project">Lade&hellip;</div>
+      </div>
+      <div>
+        <h3>SESSION.md &ndash; letzter Eintrag</h3>
+        <div id="next-step-session">Lade&hellip;</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="section-submissions">
+    <h2>Submissions</h2>
+    <div id="submissions-list">Lade Submissions&hellip;</div>
+  </section>
+
+  <section class="card" id="section-artifacts">
+    <h2>Materialisierte Artefakte</h2>
+    <div id="artifacts-list">Lade Artefakte&hellip;</div>
+  </section>
+
+  <section class="card card-wide" id="section-commits">
+    <h2>Letzte 10 Commits</h2>
+    <div id="commits-list">Lade Commits&hellip;</div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>
+    Statische Ansicht ohne Backend. Daten werden bei jedem Laden direkt von
+    <a href="https://api.github.com/repos/Gochness/Atlas" target="_blank" rel="noopener">api.github.com/repos/Gochness/Atlas</a>
+    gelesen. Keine Schreibfunktion, keine Ver&auml;nderung der Plattformlogik.
+  </p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
