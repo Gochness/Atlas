@@ -1,6 +1,6 @@
-timestamp: 2026-07-25T16:12:09Z
+timestamp: 2026-07-25T17:27:07Z
 active: claude-code
-head: 1db463e326d501c030663f439f2a0e6ba0694d2a
-focus: PLATFORM_API_v1.md und PLATFORM_UX_v1.md auf master (PR #12, #13 gemergt)
-next: Frontend-Architektur definieren, ersten Workspace bauen; offene Implementierungen (update_work_item, get_workspace_state, get_work_items) schliessen; DESIGN_CHARTER-Geltungsbereich spaeter praezisieren; S-0011/ART-0009-Ueberarbeitung weiterhin ungeklaert
+head: aab09c84206492c67a8e6164eed1624f001aed80
+focus: THE PLATFORM/ (React+TS+Vite+Tauri) - Workspace, ObjectExplorer, ActivityStream implementiert und verifiziert, Atmosphaeren-Pass gemergt (PR #15-18)
+next: Context Inspector implementieren; ObjectExplorer auf echte Mock-Daten umstellen; Tauri-Python-Bruecke v0.1 bauen; S-0011/ART-0009-Ueberarbeitung weiterhin ungeklaert
 status: in_progress
