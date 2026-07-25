@@ -8,11 +8,20 @@ Quellen:
     - THE WORKSHOPS/platform/submissions/     Submissions und Status
     - THE LIBRARY/artifacts/                  Materialisierte Artefakte
     - THE VAULT/WARP/                         Letzter WARP-Eintrag
+    - THE VAULT/work_items/                   Work Items (Absicht, ART-0007)
     - git log                                 Letzte Commits
     - gh pr list                              Offene PRs (optional)
 
 Grundlage: ART-0006 – PROJECT_STATE.md ist eine erzeugte Projektion,
 keine primaere Quelle der Wahrheit.
+
+Work Items (ART-0007): Absicht ist nicht aus Repository-Ereignissen
+ableitbar. work_item.py kennt aktuell die Statuswerte open, completed
+und abandoned - keinen expliziten Uebergang zu in_progress. "Aktive
+Work Items (status: in_progress)" und die daraus abgeleiteten
+Teilnehmer sind daher mit dem heutigen Befehlsumfang immer leer; die
+Kategorie ist bewusst literal gegen den Statuswert geprueft, nicht als
+Alias fuer open behandelt.
 """
 
 import subprocess
@@ -24,7 +33,12 @@ from pathlib import Path
 SUBMISSIONS_DIR  = Path("THE WORKSHOPS/platform/submissions")
 ARTIFACTS_DIR    = Path("THE LIBRARY/artifacts")
 WARP_DIR         = Path("THE VAULT/WARP")
+WORK_ITEMS_DIR   = Path("THE VAULT/work_items")
 OUTPUT           = Path("THE NORTH STAR/PROJECT_STATE.md")
+
+WI_STATUS_OPEN       = "open"
+WI_STATUS_IN_PROGRESS = "in_progress"
+WI_STATUS_CLOSED     = {"completed", "abandoned"}
 
 
 def _run(cmd: str) -> str:
@@ -122,6 +136,60 @@ def _submission_status(sid: str, ref: str, materialized: set[str], merged: set[s
     return "eingereicht"
 
 
+def _load_work_items(work_items_dir: Path = WORK_ITEMS_DIR) -> list[dict]:
+    if not work_items_dir.exists():
+        return []
+    items = []
+    for f in sorted(work_items_dir.glob("WI-*.yaml")):
+        try:
+            with open(f, encoding="utf-8-sig") as fh:
+                data = yaml.safe_load(fh)
+            if data:
+                items.append(data)
+        except Exception:
+            pass
+    return items
+
+
+def _work_item_sections(work_items: list[dict]) -> list[str]:
+    """
+    Baut die Markdown-Abschnitte fuer Work Items.
+    Reine Funktion (keine Dateizugriffe) - direkt testbar mit synthetischen Daten.
+    """
+    open_items   = [w for w in work_items if w.get("status") == WI_STATUS_OPEN]
+    active_items = [w for w in work_items if w.get("status") == WI_STATUS_IN_PROGRESS]
+    closed_items = [w for w in work_items if w.get("status") in WI_STATUS_CLOSED]
+    participants = sorted({w["created_by"] for w in active_items if w.get("created_by")})
+
+    def _row(w: dict) -> str:
+        return f"- {w.get('id', '?')}  [{w.get('status', '?')}]  {w.get('created_by', '?')}: {w.get('intent', '')}"
+
+    lines = ["", "## Work Items – Offen", ""]
+    lines += [_row(w) for w in open_items] if open_items else ["(keine offenen Work Items)"]
+
+    lines += ["", "## Work Items – Aktiv (status: in_progress)", ""]
+    lines += [_row(w) for w in active_items] if active_items else ["(keine aktiven Work Items)"]
+
+    lines += ["", "## Work Items – Abgeschlossen", ""]
+    lines += [_row(w) for w in closed_items] if closed_items else ["(keine abgeschlossenen Work Items)"]
+
+    lines += ["", "## Aktuelle Teilnehmer", ""]
+    lines += [f"- {p}" for p in participants] if participants else ["(keine aktiven Teilnehmer)"]
+
+    lines += ["", "## Activity Stream", ""]
+    events = sorted(work_items, key=lambda w: w.get("created_at", ""), reverse=True)
+    if events:
+        for w in events:
+            lines.append(
+                f"- {w.get('created_at', '?')}  {w.get('id', '?')}  [{w.get('status', '?')}]  "
+                f"{w.get('created_by', '?')}: {w.get('intent', '')}"
+            )
+    else:
+        lines.append("(keine Work-Item-Ereignisse)")
+
+    return lines
+
+
 def generate() -> str:
     now        = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     head       = _head_sha()
@@ -132,6 +200,7 @@ def generate() -> str:
     materialized = _materialized_refs()
     merged     = _merged_submission_ids()
     latest_warp = _latest_warp()
+    work_items = _load_work_items()
 
     lines = [
         "# PROJECT_STATE",
@@ -189,6 +258,8 @@ def generate() -> str:
 
     for c in commits:
         lines.append(f"- {c}")
+
+    lines += _work_item_sections(work_items)
 
     lines += ["", "---", ""]
 
