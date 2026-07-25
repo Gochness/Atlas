@@ -1,6 +1,6 @@
 # Atlas Platform API v1
 
-**Status:** Kanonische Spezifikation  
+**Status:** Kanonische Spezifikation (teilweise implementiert)  
 **Version:** 1.0  
 **Grundlage:** ART-0006, ART-0007, ART-0008, work_item.py v0.1, materialization_service.py v0.4
 
