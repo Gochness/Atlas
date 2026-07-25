@@ -3,43 +3,51 @@ submission:
   type: artifact
   action: create
   target: null
-  base_commit: 02239f9
-  submitted_by: claude-sonnet-4-6
-  submitted_at: 2026-07-24T00:00:00Z
+  base_commit: 0d66895
+  submitted_by: claude-code
+  submitted_at: 2026-07-25T09:00:00Z
 
 candidate:
   proposed_ref: ART-0002
   claim: >
-    Artefaktformat (bestätigungsfähig): Ein materialisiertes Artefakt besteht
-    aus mindestens vier Bestandteilen: kanonische Referenz (ART-XXXX),
-    Behauptungstext (claim), Begründungsgrundlage (basis) und
-    Herkunftsnachweis (die Submission-ID, durch die es erzeugt wurde).
-    Ein Artefakt ist nach Materialisierung unveränderlich; Änderungen
-    erfordern eine neue Submission mit action=update und target=<ref>.
-    Das Artefaktformat ist damit strikt vom Submission-Format getrennt:
-    Die Submission ist ein befristeter Vorschlag, das Artefakt ein
-    persistenter Erkenntniseintrag.
+    Ein materialisiertes Artefakt besteht aus mindestens drei Bestandteilen:
+    kanonische Referenz (proposed_ref), Behauptungstext (claim) und
+    Begründungsgrundlage (basis). Ein Artefakt ist nach Materialisierung
+    unveränderlich; Aenderungen erfordern eine neue Submission mit
+    action=update und target=<ref>.
   basis: >
-    ART-0001 hat die Schichtentrennung (Plattform / Erkenntnisraum) etabliert
-    und festgestellt, dass das Artefakt erst durch Materialisierung entsteht.
-    Aus dem Validator (VALID_ACTIONS = {create, update}) und der Regel
-    'update erfordert target' folgt, dass Artefakte identifizierbar und
-    referenzierbar sein müssen. Die Pflichtfelder claim und basis der
-    Submission liefern den Minimalinhalt, den ein Artefakt tragen muss.
-    Der Herkunftsnachweis ist durch base_commit und submission.id strukturell
-    bereits erzwungen; er gehört daher zum Artefakt selbst.
+    ART-0001 hat festgestellt, dass das Artefakt erst durch Materialisierung
+    entsteht und zum Erkenntnisraum gehoert. Damit ein Artefakt im
+    Erkenntnisraum zitierbar ist, benoetigt es eine eindeutige Referenz
+    (proposed_ref). Damit eine Behauptung pruefbar ist, muss ihr Inhalt
+    (claim) und ihre Beobachtungsgrundlage (basis) materialisiert sein -
+    ohne diese beiden Felder ist kein Pruefweg rekonstruierbar. Die drei
+    Felder sind damit notwendig: keines kann entfallen, ohne dass das
+    Artefakt seinen Zweck im Erkenntnisraum verliert. Dass Artefakte
+    unveraenderlich sind, folgt aus dem Validator (action=update erzeugt
+    einen neuen Eintrag, nicht eine stille Ueberschreibung) und sichert
+    die Nachvollziehbarkeit der Erkenntniskette.
   counter: >
-    Gegenversuch: Artefakt ohne Herkunftsnachweis (nur ref + claim + basis):
-    abgelehnt — Beweisbarkeit ist Kernprinzip (ART-0001, Quellenregel).
-    Gegenversuch: Artefakt als veränderliches Objekt: abgelehnt — update-
-    Submissions erzeugen einen neuen Eintrag, nicht eine stille Überschreibung;
-    Unveränderlichkeit sichert die Nachvollziehbarkeit der Erkenntniskette.
-    Gegenversuch: counter und open als Pflichtbestandteile des Artefakts:
-    offen gelassen — sie sind Submission-Felder und nicht zwingend im
-    materialisierten Artefakt enthalten.
+    GV1 - Artefakt ohne Referenz: scheitert - ein Artefakt ohne eindeutige
+    Referenz ist im Erkenntnisraum nicht zitierbar; Law IV verlangt
+    ersetzbaren Pruefweg, der setzt Identifizierbarkeit voraus.
+    GV2 - Artefakt ohne claim: scheitert - ohne Behauptungstext gibt es
+    nichts zu pruefen; das Artefakt haette keinen Erkenntnisgehalt.
+    GV3 - Artefakt ohne basis: scheitert - ohne Beobachtungsgrundlage ist
+    der Pruefweg nicht selbsttragend (Regel 2 Eintragsprotokoll).
+    GV4 - counter und open als Pflichtbestandteile: scheitert - sie gehoeren
+    zur Submission als Transportbehaelter, nicht zum materialisierten
+    Artefakt. Ein Artefakt muss pruefbar sein; counter und open dienen der
+    Vorbereitung des Urteils, nicht dem Urteil selbst. Nach Materialisierung
+    ist das Urteil bereits gefaellt - counter und open haben ihren Zweck
+    erfuellt.
+    GV5 - Herkunftsnachweis (submission.id) als Pflichtfeld: scheitert -
+    submission.id ist ein Plattformobjekt und darf nicht Bestandteil eines
+    Erkenntnisobjekts sein (Schichtentrennung, ART-0001). Der
+    Herkunftsnachweis ist durch base_commit im Git-Layer strukturell
+    gesichert; er muss nicht im Artefakt selbst stehen.
   open: >
-    Materialisierungsprozess selbst (wer, wann, unter welcher Bedingung)
-    noch nicht als Bedarf hergeleitet.
-    Versionierung bei update-Artefakten (Zähler, Zeitstempel) noch offen.
-    Verlinkung zwischen Artefakten (Voraussetzungsbeziehung) noch nicht
-    als Bedarf hergeleitet.
+    Ob weitere Felder notwendig sind (z.B. Verlinkung zwischen Artefakten,
+    Versionszaehler bei update), ist noch nicht als Bedarf hergeleitet.
+    Der Materialisierungsprozess selbst (wer, wann, unter welcher Bedingung)
+    ist noch nicht definiert.
