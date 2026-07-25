@@ -4,9 +4,9 @@
 
 | Component | Exists | Tested | Complete | Notes |
 |-----------|:------:|:------:|:--------:|-------|
-| Submission Service | ✓ | ✓ | ✓ | `submission_service.py` führte S-0002 vollständig über Branch, Commit, Push und Pull Request aus. |
-| CLI (`submit.py`) | ✓ | ✓ | ✓ | CLI und Dry-Run existieren; produktiver Einreichungsweg wurde praktisch verwendet. |
-| GitHub Client | ✓ | ✓ | ✓ | GitHub-Anbindung erfolgt über Git und GitHub CLI im Submission Service. PR #2 wurde damit erstellt. |
+| Submission Service | ✓ | ✓ | ✓ | `submission_service.py` führte S-0002 und S-0005 vollständig über Branch, Commit, Push und Pull Request aus. |
+| CLI (`submit.py`) | ✓ | ✓ | ✓ | CLI und Dry-Run existieren; produktiver Einreichungsweg mehrfach verwendet. |
+| GitHub Client | ✓ | ✓ | ✓ | GitHub-Anbindung über Git und GitHub CLI. PRs #1–#5 wurden damit erstellt. |
 
 ---
 
@@ -15,7 +15,7 @@
 | Component | Exists | Tested | Complete | Notes |
 |-----------|:------:|:------:|:--------:|-------|
 | Structural Validator | ✓ | ✓ | ✓ | Validator prüft Format, Pflichtfelder, Typ, Aktion, Ziel und Commit-Hash. GitHub Action führt ihn bei Pull Requests aus. |
-| Semantic Review | ✓ | ✓ | ✓ | PR #2 wurde semantisch geprüft, abgelehnt und überarbeitet. Überarbeitete Fassung wurde angenommen und gemergt. |
+| Semantic Review | ✓ | ✓ | ✓ | PR #2 wurde semantisch geprüft, abgelehnt und überarbeitet. Überarbeitete Fassung und alle weiteren PRs wurden angenommen und gemergt. |
 
 ---
 
@@ -23,9 +23,9 @@
 
 | Component | Exists | Tested | Complete | Notes |
 |-----------|:------:|:------:|:--------:|-------|
-| Artifact Materialization | ✓ | ✓ | ✓ | `materialization_service.py` v0.1. ART-0001 bis ART-0004 erfolgreich materialisiert. B1 Versionsbindung, B2 Persistenter Übergangszustand, B3 Atomare Materialisierung implementiert und nachgewiesen. |
-| Judgment Materialization | ✓ | ✓ | ☐ | v0.2: `type=judgment` → `JUDG-XXXX.md`. Implementiert, noch kein produktiver Lauf mit echter Submission. |
-| Contradiction Materialization | ✓ | ✓ | ☐ | v0.3: `type=contradiction` → `CONT-XXXX.md`, erfordert mindestens zwei targets. Implementiert, noch kein produktiver Lauf mit echter Submission. |
+| Artifact Materialization | ✓ | ✓ | ✓ | ART-0001 bis ART-0004 erfolgreich materialisiert. B1 Versionsbindung, B2 Persistenter Übergangszustand, B3 Atomare Materialisierung implementiert und nachgewiesen. |
+| Judgment Materialization | ✓ | ✓ | ✓ | S-0005 → JUDG-0001.md erfolgreich materialisiert. Zweiter Versuch korrekt mit "Artefakt existiert bereits" abgebrochen – Unveränderlichkeit in der Praxis bestätigt. |
+| Contradiction Materialization | ✓ | ✓ | ☐ | type=contradiction → CONT-XXXX.md implementiert, erfordert mindestens zwei targets. Implementierung vollständig, produktiver Lauf noch ausstehend. |
 
 ---
 
@@ -33,9 +33,9 @@
 
 | Component | Exists | Tested | Complete | Notes |
 |-----------|:------:|:------:|:--------:|-------|
-| Git Integration | ✓ | ✓ | ✓ | Branch, Commit, Push und Rückkehr zu `master` sind im Submission Service implementiert und praktisch nachgewiesen. |
+| Git Integration | ✓ | ✓ | ✓ | Branch, Commit, Push und Rückkehr zu master implementiert und mehrfach praktisch nachgewiesen. |
 | Pull Request Workflow | ✓ | ✓ | ✓ | Automatische PR-Erstellung und strukturelle GitHub-Action wurden praktisch durchlaufen. |
-| Merge Workflow | ✓ | ✓ | ☐ | PRs #1–#4 wurden gemergt. Kein vollautomatischer Merge-to-Materialization-Übergang implementiert. |
+| Merge Workflow | ✓ | ✓ | ✓ | PRs #1–#5 gemergt. Vollständiger Nachweis: Submission → Merge → Materialisierung → Knowledge Space. |
 
 ---
 
@@ -50,22 +50,25 @@
 
 ## Summary
 
-Platform completion:
+Platform completion: 12 / 13 components complete.
 
-11 / 13 components complete.
+Contradiction Materialization ist implementiert und getestet, aber noch ohne produktiven Lauf mit echter Submission.
 
-## Remaining Work
+## End-to-End Nachweis (2026-07-25)
 
-1. Judgment Materialization: produktiver End-to-End-Lauf mit echter Submission
-2. Contradiction Materialization: produktiver End-to-End-Lauf mit echter Submission
-3. Merge Workflow: vollautomatischer Übergang von Merge zu Materialisierung
+Der erste vollständige End-to-End-Durchlauf der Plattform wurde erfolgreich nachgewiesen:
 
-## Current State
+```
+S-0005 eingereicht (type=judgment, target=ART-0003)
+→ GitHub Action grün (strukturelle Validierung)
+→ PR #5 semantisch akzeptiert und gemergt
+→ JUDG-0001.md materialisiert (THE LIBRARY/artifacts/)
+→ Zweiter Materialisierungsversuch: "Artefakt existiert bereits" ← korrekt
+```
 
-The platform can now execute the complete lifecycle:
+## Nächster Schritt
 
-Submission → Structural Validation → Semantic Review → Materialization → Knowledge Space
+Modellunabhängigkeitstest: Ein anderes Modell (z.B. Gemini) führt eine vollständige
+Submission ohne Claude-Unterstützung durch.
 
-ART-0001 through ART-0004 have been successfully materialized.
-Judgment and Contradiction materialization are implemented but not yet
-demonstrated with real submissions.
+Ziel: Nachweis, dass die Plattform nicht an ein bestimmtes Modell gebunden ist.
