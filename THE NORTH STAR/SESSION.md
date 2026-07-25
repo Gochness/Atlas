@@ -553,3 +553,45 @@ Drei Punkte tragen nicht:
    materialisierten Artefakt gehören, ist nicht hergeleitet.
 
 Nächste Aktion: Behauptung auf Beobachtungsbasis zurückführen oder einschränken.
+
+------------------------------------------------------------------------
+
+## 2026-07-25 – K1/K2: Betriebsobjekt-Sein und Mischcharakter von SESSION.md
+
+Submission-Kandidaten (noch nicht eingereicht, noch keine Submission-ID vergeben).
+
+**K1 – Betriebsobjekt-Sein ist zustandsabhängig.**
+
+Ob ein Dokument ein "Betriebsobjekt" ist, ist keine feste Eigenschaft des
+Dokuments, sondern haengt vom aktuellen Zustand des Systems ab, das es
+umgibt. PROJECT_STATE.md war ein Betriebsobjekt, solange es manuell
+gepflegt wurde. Seit state_generator.py (ART-0006) ist es eine Projektion –
+derselbe Dateiname, dieselbe kanonische Rolle, aber eine andere
+Betriebsobjekt-Eigenschaft, weil sich der erzeugende Prozess geaendert hat,
+nicht das Dokument selbst.
+
+Offen: Welche minimalen Zustandsaenderungen loesen einen Wechsel des
+Betriebsobjekt-Status aus? Noch nicht hergeleitet.
+
+**K2 – SESSION.md ist gemischt: ableitbare Teile sind Projektion, Absichtsteil ist Origin.**
+
+Im Unterschied zu PROJECT_STATE.md laesst sich SESSION.md nicht einheitlich
+klassifizieren. Ein Teil ihres Inhalts (z. B. "Completed During This
+Session", abgeschlossene datierte Eintraege) ist aus der Git-Historie
+rekonstruierbar – das ist Projektion im Sinne von ART-0006. Ein anderer
+Teil (offene Hypothesen, "Next Action"-Einschaetzungen, Abwaegungen wie
+unter "Noch nicht Chronicle") ist nicht aus dem Repository ableitbar,
+sondern entsteht ausschliesslich durch Urteil in der jeweiligen Sitzung –
+das ist Origin, keine Projektion.
+
+Konsequenz (noch nicht bestaetigt): Die Entscheidung "generieren statt
+pflegen", die bei PROJECT_STATE.md getragen hat, laesst sich nicht
+unveraendert auf SESSION.md uebertragen. Ein Generator koennte bestenfalls
+den projizierbaren Teil ersetzen, nicht den Absichtsteil.
+
+Offen: Wo verlaeuft die Trennlinie im Dokument genau? Noch nicht
+Feld fuer Feld hergeleitet. Kein Vorschlag fuer eine Formatanpassung an
+dieser Stelle.
+
+Noch nicht Chronicle: Beide Kandidaten sind als Submission vorgesehen,
+aber noch nicht eingereicht. Kein Urteil vorweggenommen.
