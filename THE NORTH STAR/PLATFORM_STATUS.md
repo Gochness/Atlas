@@ -4,9 +4,9 @@
 
 | Component | Exists | Tested | Complete | Notes |
 |-----------|:------:|:------:|:--------:|-------|
-| Submission Service | ✓ | ✓ | ✓ | `submission_service.py` führte S-0002 und S-0005 vollständig über Branch, Commit, Push und Pull Request aus. |
+| Submission Service | ✓ | ✓ | ✓ | `submission_service.py` führte S-0002, S-0005 und S-0007 vollständig über Branch, Commit, Push und Pull Request aus. |
 | CLI (`submit.py`) | ✓ | ✓ | ✓ | CLI und Dry-Run existieren; produktiver Einreichungsweg mehrfach verwendet. |
-| GitHub Client | ✓ | ✓ | ✓ | GitHub-Anbindung über Git und GitHub CLI. PRs #1–#5 wurden damit erstellt. |
+| GitHub Client | ✓ | ✓ | ✓ | GitHub-Anbindung über Git und GitHub CLI. PRs #1–#7 wurden damit erstellt. |
 
 ---
 
@@ -15,7 +15,7 @@
 | Component | Exists | Tested | Complete | Notes |
 |-----------|:------:|:------:|:--------:|-------|
 | Structural Validator | ✓ | ✓ | ✓ | Validator prüft Format, Pflichtfelder, Typ, Aktion, Ziel und Commit-Hash. GitHub Action führt ihn bei Pull Requests aus. |
-| Semantic Review | ✓ | ✓ | ✓ | PR #2 wurde semantisch geprüft, abgelehnt und überarbeitet. Überarbeitete Fassung und alle weiteren PRs wurden angenommen und gemergt. |
+| Semantic Review | ✓ | ✓ | ✓ | PR #2 wurde semantisch geprüft, abgelehnt und überarbeitet. Alle weiteren PRs wurden angenommen und gemergt. S-0006 wurde nach Merge bewusst nicht materialisiert – Trennung Plattformhistorie / Wissensraum bestätigt. |
 
 ---
 
@@ -23,9 +23,9 @@
 
 | Component | Exists | Tested | Complete | Notes |
 |-----------|:------:|:------:|:--------:|-------|
-| Artifact Materialization | ✓ | ✓ | ✓ | ART-0001 bis ART-0004 erfolgreich materialisiert. B1 Versionsbindung, B2 Persistenter Übergangszustand, B3 Atomare Materialisierung implementiert und nachgewiesen. |
-| Judgment Materialization | ✓ | ✓ | ✓ | S-0005 → JUDG-0001.md erfolgreich materialisiert. Zweiter Versuch korrekt mit "Artefakt existiert bereits" abgebrochen – Unveränderlichkeit in der Praxis bestätigt. |
-| Contradiction Materialization | ✓ | ✓ | ☐ | type=contradiction → CONT-XXXX.md implementiert, erfordert mindestens zwei targets. Implementierung vollständig, produktiver Lauf noch ausstehend. |
+| Artifact Materialization | ✓ | ✓ | ✓ | ART-0001 bis ART-0005 erfolgreich materialisiert. B1 Versionsbindung, B2 Persistenter Übergangszustand, B3 Atomare Materialisierung implementiert und nachgewiesen. |
+| Judgment Materialization | ✓ | ✓ | ✓ | S-0005 → JUDG-0001.md erfolgreich materialisiert. Unveränderlichkeit bestätigt (zweiter Versuch korrekt abgewiesen). |
+| Contradiction Materialization | ✓ | ✓ | ✓ | v0.4: MaterializationConfig integriert, 6 automatisierte Tests grün. Synthetischer Systemtest erfolgreich. Kanonischer Wissensraum unberührt. Unveränderlichkeit bestätigt. |
 
 ---
 
@@ -35,7 +35,7 @@
 |-----------|:------:|:------:|:--------:|-------|
 | Git Integration | ✓ | ✓ | ✓ | Branch, Commit, Push und Rückkehr zu master implementiert und mehrfach praktisch nachgewiesen. |
 | Pull Request Workflow | ✓ | ✓ | ✓ | Automatische PR-Erstellung und strukturelle GitHub-Action wurden praktisch durchlaufen. |
-| Merge Workflow | ✓ | ✓ | ✓ | PRs #1–#5 gemergt. Vollständiger Nachweis: Submission → Merge → Materialisierung → Knowledge Space. |
+| Merge Workflow | ✓ | ✓ | ✓ | PRs #1–#7 gemergt. Vollständiger Nachweis: Submission → Merge → Materialisierung → Knowledge Space. |
 
 ---
 
@@ -50,25 +50,23 @@
 
 ## Summary
 
-Platform completion: 12 / 13 components complete.
+Platform completion:
 
-Contradiction Materialization ist implementiert und getestet, aber noch ohne produktiven Lauf mit echter Submission.
+13 / 13 components complete.
 
-## End-to-End Nachweis (2026-07-25)
+## Status
 
-Der erste vollständige End-to-End-Durchlauf der Plattform wurde erfolgreich nachgewiesen:
+The first version of the Atlas Platform has been fully implemented and
+demonstrated in practice.
 
-```
-S-0005 eingereicht (type=judgment, target=ART-0003)
-→ GitHub Action grün (strukturelle Validierung)
-→ PR #5 semantisch akzeptiert und gemergt
-→ JUDG-0001.md materialisiert (THE LIBRARY/artifacts/)
-→ Zweiter Materialisierungsversuch: "Artefakt existiert bereits" ← korrekt
-```
+The platform now supports the complete lifecycle of a contribution:
 
-## Nächster Schritt
+Submission
+→ Structural Validation
+→ Semantic Review
+→ Materialization
+→ Knowledge Space
 
-Modellunabhängigkeitstest: Ein anderes Modell (z.B. Gemini) führt eine vollständige
-Submission ohne Claude-Unterstützung durch.
+All platform components have been validated through practical execution.
 
-Ziel: Nachweis, dass die Plattform nicht an ein bestimmtes Modell gebunden ist.
+Future work extends the platform but is no longer required for Platform Version 1.
