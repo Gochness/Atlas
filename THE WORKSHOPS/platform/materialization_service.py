@@ -1,5 +1,19 @@
 """
-Atlas Materialization Service v0.2
+Atlas Materialization Service v0.4
+
+Neu in v0.4:
+    - Test-Modus (test_mode=True): materialize() schreibt Artefakt- und
+      Pending-Dateien wie gewohnt, fuehrt aber kein `git add` / `git commit`
+      aus. Dadurch lassen sich alle Pruefpfade (B1 Versionsbindung, Ref-Format,
+      target-Anforderungen, "existiert bereits") isoliert testen, ohne die
+      reale Git-Historie zu veraendern.
+    - Verzeichnisse sind ueber MaterializationConfig konfigurierbar
+      (submissions_dir, artifacts_dir, pending_dir) statt hart codiert.
+      Der Produktionspfad bleibt unveraendert der Default.
+
+Neu in v0.3:
+    - Contradiction-Artefakte (type=contradiction) werden als CONT-XXXX.md
+      materialisiert. Erfordert mindestens zwei target-Eintraege.
 
 Neu in v0.2:
     - Judgment-Artefakte (type=judgment) werden als JUDG-XXXX.md materialisiert
@@ -14,13 +28,14 @@ Architekturvorgaben (MATERIALIZATION_GEMINI_REVIEW_001):
     B3 – Atomare Materialisierung:
                             Alle Dateien eines Vorgangs in einem einzigen Commit.
                             Schlaegt der Commit fehl, vollstaendiges Rollback.
+                            Im Test-Modus entfaellt B3 (kein Commit), B1 und B2
+                            werden unveraendert geprueft.
 """
 
-import os
 import re
 import subprocess
 import yaml
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -31,6 +46,22 @@ PENDING_DIR     = Path("THE VAULT/materialization_pending")
 
 ART_REF_RE  = re.compile(r"^ART-\d{4}$")
 JUDG_REF_RE = re.compile(r"^JUDG-\d{4}$")
+CONT_REF_RE = re.compile(r"^CONT-\d{4}$")
+
+
+# ---------------------------------------------------------------------------
+# Konfiguration
+# ---------------------------------------------------------------------------
+
+@dataclass
+class MaterializationConfig:
+    submissions_dir: Path = SUBMISSIONS_DIR
+    artifacts_dir:   Path = ARTIFACTS_DIR
+    pending_dir:     Path = PENDING_DIR
+    test_mode:       bool = False  # True: kein git add / git commit
+
+
+DEFAULT_CONFIG = MaterializationConfig()
 
 
 # ---------------------------------------------------------------------------
@@ -73,21 +104,21 @@ def _commit_reachable(commit: str) -> bool:
     return r.returncode == 0
 
 
-def _load_submission(sid: str) -> Optional[dict]:
-    path = SUBMISSIONS_DIR / f"{sid}.yaml"
+def _load_submission(sid: str, config: MaterializationConfig = DEFAULT_CONFIG) -> Optional[dict]:
+    path = config.submissions_dir / f"{sid}.yaml"
     if not path.exists():
         return None
     with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
-def _pending_path(sid: str) -> Path:
-    return PENDING_DIR / f"{sid}.yaml"
+def _pending_path(sid: str, config: MaterializationConfig = DEFAULT_CONFIG) -> Path:
+    return config.pending_dir / f"{sid}.yaml"
 
 
-def _write_pending(entry: PendingEntry) -> None:
-    PENDING_DIR.mkdir(parents=True, exist_ok=True)
-    with open(_pending_path(entry.submission_id), "w", encoding="utf-8") as f:
+def _write_pending(entry: PendingEntry, config: MaterializationConfig = DEFAULT_CONFIG) -> None:
+    config.pending_dir.mkdir(parents=True, exist_ok=True)
+    with open(_pending_path(entry.submission_id, config), "w", encoding="utf-8") as f:
         yaml.dump({
             "submission_id": entry.submission_id,
             "proposed_ref":  entry.proposed_ref,
@@ -97,8 +128,8 @@ def _write_pending(entry: PendingEntry) -> None:
         }, f, allow_unicode=True)
 
 
-def _delete_pending(sid: str) -> None:
-    p = _pending_path(sid)
+def _delete_pending(sid: str, config: MaterializationConfig = DEFAULT_CONFIG) -> None:
+    p = _pending_path(sid, config)
     if p.exists():
         p.unlink()
 
@@ -185,6 +216,40 @@ def _judgment_content(data: dict, sid: str) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _contradiction_content(data: dict, sid: str) -> str:
+    cand    = data["candidate"]
+    sub     = data["submission"]
+    targets = _normalize_target(sub.get("target"))
+    target_str = ", ".join(targets) if targets else "(kein Ziel angegeben)"
+    lines = [
+        f"# {cand['proposed_ref']}",
+        "",
+        f"**Materialisiert aus:** {sid}  ",
+        f"**Basis-Commit:** {sub['base_commit']}  ",
+        f"**Materialisiert am:** {_today()}",
+        f"**Zwischen:** {target_str}",
+        "",
+        "---",
+        "",
+        "## Behauptung",
+        "",
+        str(cand["claim"]).strip(),
+        "",
+        "## Beobachtungsbasis",
+        "",
+        str(cand["basis"]).strip(),
+        "",
+        "## Gegenversuche",
+        "",
+        str(cand["counter"]).strip(),
+        "",
+        "## Offene Punkte",
+        "",
+        str(cand["open"]).strip(),
+    ]
+    return "\n".join(lines) + "\n"
+
+
 # ---------------------------------------------------------------------------
 # Kern: Materialisierung
 # ---------------------------------------------------------------------------
@@ -194,10 +259,11 @@ def _do_materialize(
     ref: str,
     content: str,
     base_commit: str,
+    config: MaterializationConfig = DEFAULT_CONFIG,
 ) -> MaterializationResult:
     """
-    Gemeinsamer Materialisierungskern fuer artifact und judgment.
-    B1, B2 und B3 sind hier implementiert.
+    Gemeinsamer Materialisierungskern fuer artifact, judgment und contradiction.
+    B1, B2 und (ausser im Test-Modus) B3 sind hier implementiert.
     """
 
     # B1 – Versionsbindung
@@ -213,8 +279,8 @@ def _do_materialize(
             ),
         )
 
-    ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
-    artifact_path = ARTIFACTS_DIR / f"{ref}.md"
+    config.artifacts_dir.mkdir(parents=True, exist_ok=True)
+    artifact_path = config.artifacts_dir / f"{ref}.md"
 
     if artifact_path.exists():
         return MaterializationResult(
@@ -232,13 +298,13 @@ def _do_materialize(
         initiated_at=datetime.now(timezone.utc).isoformat(),
         artifact_path=str(artifact_path),
     )
-    _write_pending(pending)
+    _write_pending(pending, config)
 
     # Datei schreiben
     try:
         artifact_path.write_text(content, encoding="utf-8")
     except OSError as e:
-        _delete_pending(sid)
+        _delete_pending(sid, config)
         return MaterializationResult(
             success=False,
             submission_id=sid,
@@ -246,12 +312,23 @@ def _do_materialize(
             error=f"Datei konnte nicht geschrieben werden: {e}",
         )
 
+    # Test-Modus: kein Commit, Pending direkt aufloesen
+    if config.test_mode:
+        _delete_pending(sid, config)
+        return MaterializationResult(
+            success=True,
+            submission_id=sid,
+            artifact_ref=ref,
+            artifact_path=str(artifact_path),
+            commit_sha=None,
+        )
+
     # B3 – Atomarer Commit
-    pending_file = _pending_path(sid)
+    pending_file = _pending_path(sid, config)
     r_add = _run(f'git add "{artifact_path}" "{pending_file}"')
     if r_add.returncode != 0:
         artifact_path.unlink(missing_ok=True)
-        _delete_pending(sid)
+        _delete_pending(sid, config)
         return MaterializationResult(
             success=False,
             submission_id=sid,
@@ -263,7 +340,7 @@ def _do_materialize(
     if r_commit.returncode != 0:
         _run("git reset HEAD")
         artifact_path.unlink(missing_ok=True)
-        _delete_pending(sid)
+        _delete_pending(sid, config)
         return MaterializationResult(
             success=False,
             submission_id=sid,
@@ -271,11 +348,9 @@ def _do_materialize(
             error=f"git commit fehlgeschlagen: {r_commit.stderr}",
         )
 
-    sha = _head_sha()
-
     # B2 abschliessen – Pending loeschen
-    _delete_pending(sid)
-    if not _pending_path(sid).exists():
+    _delete_pending(sid, config)
+    if not _pending_path(sid, config).exists():
         _run(f'git add "{pending_file}"')
         _run(f'git commit -m "[{sid}] Clear materialization pending"')
 
@@ -288,8 +363,11 @@ def _do_materialize(
     )
 
 
-def materialize(submission_id: str) -> MaterializationResult:
-    data = _load_submission(submission_id)
+def materialize(
+    submission_id: str,
+    config: MaterializationConfig = DEFAULT_CONFIG,
+) -> MaterializationResult:
+    data = _load_submission(submission_id, config)
     if data is None:
         return MaterializationResult(
             success=False,
@@ -308,7 +386,7 @@ def materialize(submission_id: str) -> MaterializationResult:
         return MaterializationResult(
             success=False,
             submission_id=sid,
-            error=f"v0.2 unterstuetzt nur action=create (erhalten: {act})",
+            error=f"v0.4 unterstuetzt nur action=create (erhalten: {act})",
         )
 
     if typ == "artifact":
@@ -359,60 +437,19 @@ def materialize(submission_id: str) -> MaterializationResult:
             error=f"Typ '{typ}' wird noch nicht unterstuetzt",
         )
 
-    return _do_materialize(sid, ref, content, str(sub["base_commit"]))
+    return _do_materialize(sid, ref, content, str(sub["base_commit"]), config)
 
 
 # ---------------------------------------------------------------------------
 # Hilfsfunktion: Pending-Eintraege
 # ---------------------------------------------------------------------------
 
-def list_pending() -> list[PendingEntry]:
-    if not PENDING_DIR.exists():
+def list_pending(config: MaterializationConfig = DEFAULT_CONFIG) -> list[PendingEntry]:
+    if not config.pending_dir.exists():
         return []
     entries = []
-    for f in PENDING_DIR.glob("*.yaml"):
+    for f in config.pending_dir.glob("*.yaml"):
         with open(f, encoding="utf-8") as fh:
             d = yaml.safe_load(fh)
         entries.append(PendingEntry(**d))
     return entries
-
-
-# ---------------------------------------------------------------------------
-# Contradiction-Inhalts-Generator (v0.3)
-# ---------------------------------------------------------------------------
-
-CONT_REF_RE = re.compile(r"^CONT-\d{4}$")
-
-
-def _contradiction_content(data: dict, sid: str) -> str:
-    cand    = data["candidate"]
-    sub     = data["submission"]
-    targets = _normalize_target(sub.get("target"))
-    target_str = ", ".join(targets) if targets else "(kein Ziel angegeben)"
-    lines = [
-        f"# {cand['proposed_ref']}",
-        "",
-        f"**Materialisiert aus:** {sid}  ",
-        f"**Basis-Commit:** {sub['base_commit']}  ",
-        f"**Materialisiert am:** {_today()}",
-        f"**Zwischen:** {target_str}",
-        "",
-        "---",
-        "",
-        "## Behauptung",
-        "",
-        str(cand["claim"]).strip(),
-        "",
-        "## Beobachtungsbasis",
-        "",
-        str(cand["basis"]).strip(),
-        "",
-        "## Gegenversuche",
-        "",
-        str(cand["counter"]).strip(),
-        "",
-        "## Offene Punkte",
-        "",
-        str(cand["open"]).strip(),
-    ]
-    return "\n".join(lines) + "\n"
