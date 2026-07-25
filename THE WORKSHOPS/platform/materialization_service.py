@@ -336,11 +336,27 @@ def materialize(submission_id: str) -> MaterializationResult:
             )
         content = _judgment_content(data, sid)
 
+    elif typ == "contradiction":
+        if not CONT_REF_RE.match(ref):
+            return MaterializationResult(
+                success=False,
+                submission_id=sid,
+                error=f"proposed_ref hat ungueltiges Format fuer contradiction: {ref} (erwartet CONT-XXXX)",
+            )
+        targets = _normalize_target(sub.get("target"))
+        if len(targets) < 2:
+            return MaterializationResult(
+                success=False,
+                submission_id=sid,
+                error="contradiction erfordert mindestens zwei targets",
+            )
+        content = _contradiction_content(data, sid)
+
     else:
         return MaterializationResult(
             success=False,
             submission_id=sid,
-            error=f"Typ '{typ}' wird in v0.2 noch nicht unterstuetzt",
+            error=f"Typ '{typ}' wird noch nicht unterstuetzt",
         )
 
     return _do_materialize(sid, ref, content, str(sub["base_commit"]))
@@ -359,3 +375,44 @@ def list_pending() -> list[PendingEntry]:
             d = yaml.safe_load(fh)
         entries.append(PendingEntry(**d))
     return entries
+
+
+# ---------------------------------------------------------------------------
+# Contradiction-Inhalts-Generator (v0.3)
+# ---------------------------------------------------------------------------
+
+CONT_REF_RE = re.compile(r"^CONT-\d{4}$")
+
+
+def _contradiction_content(data: dict, sid: str) -> str:
+    cand    = data["candidate"]
+    sub     = data["submission"]
+    targets = _normalize_target(sub.get("target"))
+    target_str = ", ".join(targets) if targets else "(kein Ziel angegeben)"
+    lines = [
+        f"# {cand['proposed_ref']}",
+        "",
+        f"**Materialisiert aus:** {sid}  ",
+        f"**Basis-Commit:** {sub['base_commit']}  ",
+        f"**Materialisiert am:** {_today()}",
+        f"**Zwischen:** {target_str}",
+        "",
+        "---",
+        "",
+        "## Behauptung",
+        "",
+        str(cand["claim"]).strip(),
+        "",
+        "## Beobachtungsbasis",
+        "",
+        str(cand["basis"]).strip(),
+        "",
+        "## Gegenversuche",
+        "",
+        str(cand["counter"]).strip(),
+        "",
+        "## Offene Punkte",
+        "",
+        str(cand["open"]).strip(),
+    ]
+    return "\n".join(lines) + "\n"
