@@ -9,9 +9,13 @@ import type { Artifact, PlatformObjectId, Submission, WorkItem } from "../../typ
 // ("Zustandshoheit beim Workspace") - Auswahl und Neuanlage werden
 // ausschliesslich ueber Callbacks an den Workspace gemeldet.
 //
-// Noch keine echten Daten (Mock-Daten via Props). "+ Neues Objekt"
-// meldet den Wunsch nur nach oben (onNewObject) - was dabei konkret
-// entsteht, ist noch nicht implementiert (keine Object-Logik).
+// workItems/submissions/artifacts kommen als Props vom Workspace - echte
+// Daten aus dem Repository (siehe api/workItems.ts, api/submissions.ts,
+// api/artifacts.ts). "+ Neues Objekt" meldet den Wunsch nur nach oben
+// (onNewObject) - der Explorer selbst weiss nicht, was dabei entsteht.
+// Fuer Work Items ruft der Workspace darueber createWorkItem() auf
+// (siehe api/platformBridge.ts) - der erste echte Schreibpfad der
+// Plattform.
 export interface ObjectExplorerProps {
   workItems: WorkItem[];
   submissions: Submission[];

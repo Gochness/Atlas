@@ -9,7 +9,8 @@ import { realWorkItems } from "../../api/workItems";
 import { realSubmissions } from "../../api/submissions";
 import { realArtifacts } from "../../api/artifacts";
 import { realActivityEvents } from "../../api/activity";
-import type { PlatformObjectId } from "../../types/platform";
+import { createWorkItem } from "../../api/platformBridge";
+import type { PlatformObjectId, WorkItem } from "../../types/platform";
 
 // Workspace: die zentrale Koordinationskomponente (siehe
 // PLATFORM_FRONTEND_ARCHITECTURE_v1.md, Abschnitt 3). Sie legt die
@@ -37,22 +38,47 @@ import type { PlatformObjectId } from "../../types/platform";
 // bekommen dieselbe `selection`, abgeleitet aus selectedId ueber
 // resolveSelection() (Aequivalent einer kuenftigen get_object(id)).
 //
-// Keine echte API-Anbindung, keine Object-Logik ausser der Auswahl selbst.
+// Erster echter Schreibpfad: onNewObject fragt intent/created_by ueber
+// window.prompt() ab (minimaler Durchstich, kein neues UX-Konzept) und
+// ruft createWorkItem() auf, das den Tauri-Command create_work_item
+// aufruft - dieser fuehrt wiederum das bestehende work_item.py als
+// Subprozess aus (Shell-Bootstrap, siehe ARCHITECTURE_NOTES.md und
+// src-tauri/src/main.rs). Das entstandene Work Item wird lokal in
+// newWorkItems aufgenommen, weil realWorkItems nur zur Build-Zeit ueber
+// import.meta.glob geladen wird (siehe api/workItems.ts) und nicht zur
+// Laufzeit nachlaedt - keine Erweiterung dieses Laders.
 export function Workspace() {
   const [selectedId, setSelectedId] = useState<PlatformObjectId | null>(null);
-  const selection = resolveSelection(selectedId);
+  const [newWorkItems, setNewWorkItems] = useState<WorkItem[]>([]);
+  const allWorkItems = [...realWorkItems, ...newWorkItems];
+  const selection = resolveSelection(selectedId, newWorkItems);
+
+  async function handleNewObject() {
+    const intent = window.prompt("Intent des neuen Work Items:");
+    if (!intent || !intent.trim()) return;
+    const createdBy = window.prompt("Erstellt von (created_by):");
+    if (!createdBy || !createdBy.trim()) return;
+
+    try {
+      const workItem = await createWorkItem(intent.trim(), createdBy.trim());
+      setNewWorkItems((prev) => [...prev, workItem]);
+      setSelectedId(workItem.id);
+    } catch (err) {
+      window.alert(`Work Item konnte nicht erstellt werden: ${err}`);
+    }
+  }
 
   return (
     <div className="workspace-shell">
       <div className="workspace-main">
         <aside className="object-explorer" aria-label="Object Explorer">
           <ObjectExplorer
-            workItems={realWorkItems}
+            workItems={allWorkItems}
             submissions={realSubmissions}
             artifacts={realArtifacts}
             selectedId={selectedId}
             onSelect={setSelectedId}
-            onNewObject={() => {}}
+            onNewObject={handleNewObject}
           />
         </aside>
 
