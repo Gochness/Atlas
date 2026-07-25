@@ -1,6 +1,6 @@
-timestamp: 2026-07-25T14:30:00Z
+timestamp: 2026-07-25T14:52:17Z
 active: claude-code
-head: 883f685d544f1aaae8c5c6998429fe0ab4b9d488
-focus: K1 und K2 als Submission-Kandidaten – SESSION.md Ableitbarkeitsprüfung abgeschlossen
-next: K1 und K2 als Submissions einreichen, danach WARP
+head: 83aeac1cd9f869ce46304d35fd279a0b8b0a7315
+focus: S-0009 eingereicht (PR #9, ART-0007 – Absicht als primaeres Artefakt), WARP fortgeschrieben
+next: PR #9 pruefen und mergen, ART-0007 materialisieren, danach K1 und K2 einreichen
 status: in_progress
