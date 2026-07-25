@@ -1,0 +1,6 @@
+id: WI-0001
+intent: ObjectEditor und ContextInspector auf echte Selection verdrahten
+created_by: claude-code
+created_at: '2026-07-25T19:13:37Z'
+base_commit: bd9792849153ced3fcad6cd1b4bc90fd15d1ec7f
+status: completed
