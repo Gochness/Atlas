@@ -2,7 +2,9 @@ import "./Workspace.css";
 import { ObjectExplorer } from "../ObjectExplorer";
 import { ActivityStream } from "../ActivityStream";
 import { ContextInspector } from "../ContextInspector";
+import { ObjectEditor } from "../ObjectEditor";
 import { mockActivityEvents } from "../../api/mockData";
+import type { ContextInspectorSelection } from "../../types/platform";
 
 // Workspace: die zentrale Koordinationskomponente (siehe
 // PLATFORM_FRONTEND_ARCHITECTURE_v1.md, Abschnitt 3). Sie legt die
@@ -18,15 +20,18 @@ import { mockActivityEvents } from "../../api/mockData";
 //
 // ActivityStream zeigt Mock-Ereignisse (mockActivityEvents); der Klick-
 // Handler ist ein Platzhalter (console.log) - es gibt noch keinen
-// Object Editor, den ein Klick oeffnen koennte.
+// Object Editor, der wirklich etwas oeffnen wuerde.
 //
-// ContextInspector zeigt den leeren Zustand ("none"): ObjectExplorer
-// hat noch keine echte Auswahl (selectedId ist immer null), daher
-// spiegelt "none" den tatsaechlichen Zustand korrekt wider - keine
-// vorgetaeuschte Auswahl.
+// ObjectEditor und ContextInspector erhalten laut Datenfluss (Architektur
+// Abschnitt 6, Schritt 5) dasselbe aktive Objekt vom Workspace - daher
+// eine gemeinsame `selection`-Variable statt zweier unabhaengiger Werte.
+// ObjectExplorer hat noch keine echte Auswahl (selectedId immer null),
+// daher spiegelt "none" den tatsaechlichen Zustand korrekt wider.
 //
 // Keine echte API-Anbindung, keine Object-Logik.
 export function Workspace() {
+  const selection: ContextInspectorSelection = { kind: "none" };
+
   return (
     <div className="workspace-shell">
       <div className="workspace-main">
@@ -42,12 +47,12 @@ export function Workspace() {
         </aside>
 
         <main className="workspace-content">
-          <p className="placeholder-label">Workspace</p>
+          <ObjectEditor selection={selection} />
         </main>
 
         <aside className="context-inspector" aria-label="Context Inspector">
           <p className="placeholder-label">Context Inspector</p>
-          <ContextInspector selection={{ kind: "none" }} />
+          <ContextInspector selection={selection} />
         </aside>
       </div>
 
