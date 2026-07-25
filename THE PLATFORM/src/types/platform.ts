@@ -30,3 +30,14 @@ export interface Artifact {
 // Gemeinsamer Bezeichner ueber alle Plattformobjekt-Typen hinweg,
 // fuer Auswahl im Object Explorer.
 export type PlatformObjectId = string;
+
+// Ereignis im Activity Stream (siehe PLATFORM_FRONTEND_ARCHITECTURE_v1.md,
+// Abschnitt 3: "Work-Item-Uebergaenge, Submission-Ereignisse,
+// Materialisierungen"). Jedes Ereignis verweist ueber objectId auf das
+// betroffene Plattformobjekt.
+export interface ActivityEvent {
+  id: string;
+  timestamp: string; // ISO 8601
+  label: string;
+  objectId: PlatformObjectId;
+}

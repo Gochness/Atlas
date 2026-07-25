@@ -1,0 +1,44 @@
+/* .empty-state wird bereits in Workspace.css definiert und hier
+   wiederverwendet (keine CSS-Modul-Kapselung in diesem Projekt). */
+
+.activity-stream-events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.activity-stream-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: #1c1c1e;
+}
+
+.activity-stream-item:hover {
+  background: #e8e8ea;
+}
+
+.activity-stream-item-label {
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-stream-item-timestamp {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: #9a9a9e;
+}

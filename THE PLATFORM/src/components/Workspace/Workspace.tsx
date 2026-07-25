@@ -1,5 +1,7 @@
 import "./Workspace.css";
 import { ObjectExplorer } from "../ObjectExplorer";
+import { ActivityStream } from "../ActivityStream";
+import { mockActivityEvents } from "../../api/mockData";
 
 // Workspace: die zentrale Koordinationskomponente (siehe
 // PLATFORM_FRONTEND_ARCHITECTURE_v1.md, Abschnitt 3). Sie legt die
@@ -11,11 +13,16 @@ import { ObjectExplorer } from "../ObjectExplorer";
 //
 // ObjectExplorer ist hier nur visuell eingebunden: leere Listen und
 // No-op-Callbacks, keine echten Daten, keine Klicklogik, keine
-// State-Verwaltung im Workspace. Context Inspector bleibt weiterhin
-// Platzhalter-Markup, nicht als eigene Komponente - das ist
-// ausdruecklich nicht Teil dieses Schritts.
+// State-Verwaltung im Workspace.
 //
-// Keine Plattformdaten, keine API-Anbindung, keine Object-Logik.
+// ActivityStream zeigt Mock-Ereignisse (mockActivityEvents); der Klick-
+// Handler ist ein Platzhalter (console.log) - es gibt noch keinen
+// Object Editor, den ein Klick oeffnen koennte.
+//
+// Context Inspector bleibt weiterhin Platzhalter-Markup, nicht als
+// eigene Komponente - das ist ausdruecklich nicht Teil dieses Schritts.
+//
+// Keine echte API-Anbindung, keine Object-Logik.
 export function Workspace() {
   return (
     <div className="workspace-shell">
@@ -42,7 +49,10 @@ export function Workspace() {
 
       <footer className="activity-stream" aria-label="Activity Stream">
         <p className="placeholder-label">Activity Stream</p>
-        <p className="empty-state">Noch keine Ereignisse.</p>
+        <ActivityStream
+          events={mockActivityEvents}
+          onSelect={(objectId) => console.log("Activity Stream: Platzhalter-Klick auf", objectId)}
+        />
       </footer>
     </div>
   );
