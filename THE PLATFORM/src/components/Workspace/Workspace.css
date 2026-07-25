@@ -1,0 +1,66 @@
+/* Vorläufige Implementierungsentscheidung für den Prototyp.
+   Die Breite des Object Explorers ist derzeit nicht durch die
+   UX-Spezifikation festgelegt. */
+
+.workspace-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #1c1c1e;
+  background: #fafafa;
+}
+
+.workspace-main {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 240px 4fr 1fr;
+}
+
+.object-explorer,
+.context-inspector {
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.object-explorer {
+  border-right: 1px solid #e0e0e0;
+  background: #f4f4f5;
+}
+
+.context-inspector {
+  border-left: 1px solid #e0e0e0;
+  background: #f4f4f5;
+}
+
+.workspace-content {
+  overflow-y: auto;
+  padding: 24px;
+  background: #ffffff;
+}
+
+.activity-stream {
+  flex-shrink: 0;
+  height: 140px;
+  overflow-y: auto;
+  padding: 12px 24px;
+  border-top: 1px solid #e0e0e0;
+  background: #f4f4f5;
+}
+
+.placeholder-label {
+  margin: 0 0 8px 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #6b6b70;
+  text-transform: uppercase;
+}
+
+.empty-state {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #9a9a9e;
+}

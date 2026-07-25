@@ -3,6 +3,9 @@ node_modules/
 dist/
 dist-ssr/
 *.local
+*.tsbuildinfo
+vite.config.d.ts
+package-lock.json
 
 # Editor
 .vscode/*
