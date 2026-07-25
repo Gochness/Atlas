@@ -1,0 +1,45 @@
+submission:
+  id: S-0004
+  type: artifact
+  action: create
+  target: null
+  base_commit: 0d66895
+  submitted_by: claude-code
+  submitted_at: 2026-07-24T20:02:21Z
+
+candidate:
+  proposed_ref: ART-0004
+  claim: >
+    Der Einstieg eines neuen Bewohners in eine laufende Arbeit ist derzeit
+    nicht vollstaendig durch kanonische Artefakte definiert. Es existiert
+    kein kanonisches Dokument, das benennt, welche Artefakte in welcher
+    Reihenfolge zu lesen sind und wie der gelesene Stand gegen das
+    Repository geprueft wird.
+  basis: >
+    Nachpruefbar am Repository. WARP.md und WARP_STATE_MACHINE.md definieren
+    ausschliesslich den Sitzungsabschluss (Materialisierung, Zustaende LIVE
+    bis ATLAS_SYNCHRON). Kein kanonisches Dokument beschreibt den Eingang.
+    Das Verzeichnis THE VAULT/WARP wird von keinem Dokument und keinem
+    Skript referenziert (Volltextsuche ueber alle md, py, yaml, yml). Im
+    beobachteten Synchronisationsfall am 24.07. wurde der Einstieg
+    stattdessen durch eine Anweisung von ausserhalb des Repositorys
+    hergestellt.
+  counter: >
+    GV1 - Deckt das Kontextprinzip im Atlas System Prompt den Einstieg
+    bereits ab? Greift teilweise. Der System Prompt fordert, vor jeder
+    Handlung den Projektkontext herzustellen, benennt aber weder die
+    Artefakte noch eine Reihenfolge noch eine Pruefung gegen das Repository.
+    Deshalb lautet die Behauptung nicht definiert, sondern nicht
+    vollstaendig definiert. GV2 - Genuegt die Liste kanonischer Dokumente in
+    PROJECT_STATE.md als Einstiegsdefinition? Scheitert, die Liste ist
+    unvollstaendig und nennt keine Reihenfolge und keine Pruefung. GV3 -
+    Ist WARP-RESUME.md die fehlende Definition? Scheitert, die Datei stammt
+    aus Genesis I, wird nirgends referenziert und beschreibt einen
+    ueberholten Zustand.
+  open: >
+    Aus dieser Behauptung folgt nicht, welche Loesung richtig ist. Ein neues
+    Dokument, eine Erweiterung bestehender Dokumente oder der Verzicht auf
+    einen benannten Prozess bleiben gleichermassen offen. Ein Name wird
+    ausdruecklich nicht vorgeschlagen. Offen bleibt ausserdem, ob ein
+    Betriebsprozess ueberhaupt ein kanonisches Dokument benoetigt - diese
+    Frage ist nicht Gegenstand dieser Behauptung.
