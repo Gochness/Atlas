@@ -1,0 +1,20 @@
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+*.tsbuildinfo
+vite.config.d.ts
+package-lock.json
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+
+# Tauri / Rust
+src-tauri/target/
+src-tauri/Cargo.lock
+
+# OS
+Thumbs.db
+.DS_Store

@@ -1,0 +1,18 @@
+[package]
+name = "atlas-platform"
+version = "0.1.0"
+description = "Atlas Platform – Desktop-Frontend fuer die Atlas Plattform"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Bewusst keine HTTP-/Server-Crates (axum, warp, actix-web, reqwest-server-side
+# o.ae.) – siehe PLATFORM_API_v1.md: kein HTTP-Server, keine FastAPI. Die
+# Anbindung an die bestehende Python Platform Engine (THE WORKSHOPS/platform/)
+# erfolgt spaeter ueber Tauri-Commands, nicht ueber ein Netzwerkprotokoll.
