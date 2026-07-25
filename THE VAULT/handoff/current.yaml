@@ -1,6 +1,6 @@
-timestamp: 2026-07-25T16:02:13Z
+timestamp: 2026-07-25T16:12:09Z
 active: claude-code
-head: 303ae34c3c4a9e29683fb8f7fb2c70a38b057399
-focus: work_item.py v0.1 auf master, PLATFORM_API_v1.md auf PR #12, S-0011/ART-0009 gemergt trotz Ablehnungsempfehlung
-next: PR #12 pruefen/mergen, offene API-Implementierungen schliessen, S-0011/ART-0009-Ueberarbeitung klaeren, PLATFORM_UX_v1.md
+head: 1db463e326d501c030663f439f2a0e6ba0694d2a
+focus: PLATFORM_API_v1.md und PLATFORM_UX_v1.md auf master (PR #12, #13 gemergt)
+next: Frontend-Architektur definieren, ersten Workspace bauen; offene Implementierungen (update_work_item, get_workspace_state, get_work_items) schliessen; DESIGN_CHARTER-Geltungsbereich spaeter praezisieren; S-0011/ART-0009-Ueberarbeitung weiterhin ungeklaert
 status: in_progress
