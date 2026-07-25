@@ -1,4 +1,13 @@
-import type { ActivityEvent, Artifact, Submission, WorkItem } from "../types/platform";
+import type {
+  ActivityEvent,
+  Artifact,
+  ArtifactContext,
+  Submission,
+  SubmissionContext,
+  WorkItem,
+  WorkItemContext,
+  WorkspaceContext,
+} from "../types/platform";
 
 // Platzhalter-Daten fuer den Object Explorer. Ersetzt spaeter durch
 // echte Aufrufe der Platform API (get_work_items, etc. – siehe
@@ -28,3 +37,34 @@ export const mockActivityEvents: ActivityEvent[] = [
   { id: "EVT-0002", timestamp: "2026-07-25T15:00:00Z", label: "S-0010 eingereicht", objectId: "S-0010" },
   { id: "EVT-0001", timestamp: "2026-07-25T14:49:00Z", label: "WI-0001 gestartet", objectId: "WI-0001" },
 ];
+
+// Mock-Daten fuer die vier Context-Inspector-Zustaende (PLATFORM_UX_v1.md).
+// Je ein Beispiel, passend zu den obigen Mock-Objekten.
+
+export const mockWorkItemContext: WorkItemContext = {
+  workItem: mockWorkItems[1],
+  linkedSubmissions: [],
+  affectedArtifacts: [],
+};
+
+export const mockSubmissionContext: SubmissionContext = {
+  submission: mockSubmissions[1],
+  diffSummary: "+53 Zeilen (S-0011.yaml neu)",
+  targetArtifact: "ART-0009",
+  pullRequestUrl: "https://github.com/Gochness/Atlas/pull/11",
+  validationStatus: "strukturell OK, semantisch: Ueberarbeitung erbeten",
+};
+
+export const mockArtifactContext: ArtifactContext = {
+  artifact: mockArtifacts[1],
+  linkedSubmissions: ["S-0010"],
+  origin: "WI-0002",
+  history: ["materialisiert am 2026-07-25"],
+  actions: ["Auf GitHub ansehen"],
+};
+
+export const mockWorkspaceContext: WorkspaceContext = {
+  activeFocus: "ContextInspector implementieren",
+  openWorkItems: ["WI-0002"],
+  activeParticipants: ["claude-code"],
+};

@@ -41,3 +41,45 @@ export interface ActivityEvent {
   label: string;
   objectId: PlatformObjectId;
 }
+
+// Context-Inspector-Zustaende nach PLATFORM_UX_v1.md, Abschnitt
+// "Kontext-Inspector" - Felder entsprechen 1:1 den dort genannten
+// Aufzaehlungen je Objekttyp. Reine Anzeigedaten, keine Bearbeitung.
+
+export interface WorkItemContext {
+  workItem: WorkItem;
+  linkedSubmissions: string[];
+  affectedArtifacts: string[];
+}
+
+export interface SubmissionContext {
+  submission: Submission;
+  diffSummary: string;
+  targetArtifact: string;
+  pullRequestUrl: string;
+  validationStatus: string;
+}
+
+export interface ArtifactContext {
+  artifact: Artifact;
+  linkedSubmissions: string[];
+  origin: string;
+  history: string[];
+  actions: string[];
+}
+
+export interface WorkspaceContext {
+  activeFocus: string;
+  openWorkItems: string[];
+  activeParticipants: string[];
+}
+
+// Diskriminierte Union: "none" ist der leere Zustand (kein Objekt
+// ausgewaehlt), die anderen vier entsprechen den vier in
+// PLATFORM_UX_v1.md benannten Kontext-Inspector-Zustaenden.
+export type ContextInspectorSelection =
+  | { kind: "none" }
+  | { kind: "workspace"; data: WorkspaceContext }
+  | { kind: "workItem"; data: WorkItemContext }
+  | { kind: "submission"; data: SubmissionContext }
+  | { kind: "artifact"; data: ArtifactContext };

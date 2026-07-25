@@ -1,0 +1,31 @@
+.context-fields {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.context-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.context-field-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b6b70;
+}
+
+.context-field-value {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #1c1c1e;
+  word-break: break-word;
+}
+
+.context-field-empty {
+  color: #9a9a9e;
+}

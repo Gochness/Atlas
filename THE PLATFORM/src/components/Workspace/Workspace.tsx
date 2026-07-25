@@ -1,6 +1,7 @@
 import "./Workspace.css";
 import { ObjectExplorer } from "../ObjectExplorer";
 import { ActivityStream } from "../ActivityStream";
+import { ContextInspector } from "../ContextInspector";
 import { mockActivityEvents } from "../../api/mockData";
 
 // Workspace: die zentrale Koordinationskomponente (siehe
@@ -19,8 +20,10 @@ import { mockActivityEvents } from "../../api/mockData";
 // Handler ist ein Platzhalter (console.log) - es gibt noch keinen
 // Object Editor, den ein Klick oeffnen koennte.
 //
-// Context Inspector bleibt weiterhin Platzhalter-Markup, nicht als
-// eigene Komponente - das ist ausdruecklich nicht Teil dieses Schritts.
+// ContextInspector zeigt den leeren Zustand ("none"): ObjectExplorer
+// hat noch keine echte Auswahl (selectedId ist immer null), daher
+// spiegelt "none" den tatsaechlichen Zustand korrekt wider - keine
+// vorgetaeuschte Auswahl.
 //
 // Keine echte API-Anbindung, keine Object-Logik.
 export function Workspace() {
@@ -43,7 +46,8 @@ export function Workspace() {
         </main>
 
         <aside className="context-inspector" aria-label="Context Inspector">
-          <p className="placeholder-label">Context Inspector (Platzhalter)</p>
+          <p className="placeholder-label">Context Inspector</p>
+          <ContextInspector selection={{ kind: "none" }} />
         </aside>
       </div>
 
