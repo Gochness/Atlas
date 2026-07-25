@@ -1,10 +1,11 @@
+import { useState } from "react";
 import "./Workspace.css";
 import { ObjectExplorer } from "../ObjectExplorer";
 import { ActivityStream } from "../ActivityStream";
 import { ContextInspector } from "../ContextInspector";
 import { ObjectEditor } from "../ObjectEditor";
-import { mockActivityEvents } from "../../api/mockData";
-import type { ContextInspectorSelection } from "../../types/platform";
+import { mockActivityEvents, mockArtifacts, mockSubmissions, mockWorkItems, resolveSelection } from "../../api/mockData";
+import type { PlatformObjectId } from "../../types/platform";
 
 // Workspace: die zentrale Koordinationskomponente (siehe
 // PLATFORM_FRONTEND_ARCHITECTURE_v1.md, Abschnitt 3). Sie legt die
@@ -14,34 +15,36 @@ import type { ContextInspectorSelection } from "../../types/platform";
 //   -------------------------------------------------------------------------
 //   Activity Stream (unten, ueber die volle Breite)
 //
-// ObjectExplorer ist hier nur visuell eingebunden: leere Listen und
-// No-op-Callbacks, keine echten Daten, keine Klicklogik, keine
-// State-Verwaltung im Workspace.
+// ObjectExplorer zeigt jetzt echte Mock-Listen (mockWorkItems/
+// mockSubmissions/mockArtifacts) und ist tatsaechlich klickbar: die
+// Auswahl lebt als State im Workspace (selectedId) - "Zustandshoheit
+// beim Workspace" bleibt damit gewahrt, ObjectExplorer selbst haelt
+// weiterhin keinen eigenen Zustand.
 //
 // ActivityStream zeigt Mock-Ereignisse (mockActivityEvents); der Klick-
-// Handler ist ein Platzhalter (console.log) - es gibt noch keinen
-// Object Editor, der wirklich etwas oeffnen wuerde.
+// Handler ist weiterhin ein Platzhalter (console.log) - Ereignisse sind
+// nicht Teil dieser Auswahl-Verdrahtung.
 //
 // ObjectEditor und ContextInspector erhalten laut Datenfluss (Architektur
-// Abschnitt 6, Schritt 5) dasselbe aktive Objekt vom Workspace - daher
-// eine gemeinsame `selection`-Variable statt zweier unabhaengiger Werte.
-// ObjectExplorer hat noch keine echte Auswahl (selectedId immer null),
-// daher spiegelt "none" den tatsaechlichen Zustand korrekt wider.
+// Abschnitt 6, Schritt 5) dasselbe aktive Objekt vom Workspace: beide
+// bekommen dieselbe `selection`, abgeleitet aus selectedId ueber
+// resolveSelection() (Mock-Aequivalent einer kuenftigen get_object(id)).
 //
-// Keine echte API-Anbindung, keine Object-Logik.
+// Keine echte API-Anbindung, keine Object-Logik ausser der Auswahl selbst.
 export function Workspace() {
-  const selection: ContextInspectorSelection = { kind: "none" };
+  const [selectedId, setSelectedId] = useState<PlatformObjectId | null>(null);
+  const selection = resolveSelection(selectedId);
 
   return (
     <div className="workspace-shell">
       <div className="workspace-main">
         <aside className="object-explorer" aria-label="Object Explorer">
           <ObjectExplorer
-            workItems={[]}
-            submissions={[]}
-            artifacts={[]}
-            selectedId={null}
-            onSelect={() => {}}
+            workItems={mockWorkItems}
+            submissions={mockSubmissions}
+            artifacts={mockArtifacts}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
             onNewObject={() => {}}
           />
         </aside>
