@@ -2,6 +2,8 @@ import type {
   ActivityEvent,
   Artifact,
   ArtifactContext,
+  ContextInspectorSelection,
+  PlatformObjectId,
   Submission,
   SubmissionContext,
   WorkItem,
@@ -68,3 +70,61 @@ export const mockWorkspaceContext: WorkspaceContext = {
   openWorkItems: ["WI-0002"],
   activeParticipants: ["claude-code"],
 };
+
+// Loest eine ausgewaehlte Objekt-ID zu einer ContextInspectorSelection
+// auf - Mock-Aequivalent einer kuenftigen get_object(id)-Operation der
+// Platform API. Fuer WI-0002/S-0011/ART-0008 werden die oben bereits
+// ausgearbeiteten Beispiel-Kontexte wiederverwendet; fuer alle anderen
+// Objekte wird ein einfacherer Kontext aus den vorhandenen Basisdaten
+// abgeleitet, damit jedes Listenelement im Object Explorer anklickbar
+// ein sinnvolles Ergebnis liefert.
+export function resolveSelection(id: PlatformObjectId | null): ContextInspectorSelection {
+  if (!id) return { kind: "none" };
+
+  const workItem = mockWorkItems.find((w) => w.id === id);
+  if (workItem) {
+    if (workItem.id === mockWorkItemContext.workItem.id) {
+      return { kind: "workItem", data: mockWorkItemContext };
+    }
+    return {
+      kind: "workItem",
+      data: { workItem, linkedSubmissions: [], affectedArtifacts: [] },
+    };
+  }
+
+  const submission = mockSubmissions.find((s) => s.id === id);
+  if (submission) {
+    if (submission.id === mockSubmissionContext.submission.id) {
+      return { kind: "submission", data: mockSubmissionContext };
+    }
+    return {
+      kind: "submission",
+      data: {
+        submission,
+        diffSummary: "–",
+        targetArtifact: submission.proposedRef,
+        pullRequestUrl: "–",
+        validationStatus: submission.status,
+      },
+    };
+  }
+
+  const artifact = mockArtifacts.find((a) => a.ref === id);
+  if (artifact) {
+    if (artifact.ref === mockArtifactContext.artifact.ref) {
+      return { kind: "artifact", data: mockArtifactContext };
+    }
+    return {
+      kind: "artifact",
+      data: {
+        artifact,
+        linkedSubmissions: [artifact.sourceSubmission],
+        origin: "–",
+        history: [],
+        actions: [],
+      },
+    };
+  }
+
+  return { kind: "none" };
+}
