@@ -1,4 +1,4 @@
-﻿# Atlas Platform Status
+# Atlas Platform Status
 
 ## Submission
 
@@ -15,7 +15,7 @@
 | Component | Exists | Tested | Complete | Notes |
 |-----------|:------:|:------:|:--------:|-------|
 | Structural Validator | ✓ | ✓ | ✓ | Validator prüft Format, Pflichtfelder, Typ, Aktion, Ziel und Commit-Hash. GitHub Action führt ihn bei Pull Requests aus. |
-| Semantic Review | ✓ | ✓ | ☐ | PR #2 wurde semantisch geprüft und zurückgewiesen. Ein vollständiger Materialisierungsweg für das Urteil fehlt noch. |
+| Semantic Review | ✓ | ✓ | ✓ | PR #2 wurde semantisch geprüft, abgelehnt und überarbeitet. Überarbeitete Fassung wurde angenommen und gemergt. |
 
 ---
 
@@ -23,9 +23,9 @@
 
 | Component | Exists | Tested | Complete | Notes |
 |-----------|:------:|:------:|:--------:|-------|
-| Artifact Materialization | ☐ | ☐ | ☐ | Submission und Prüfung existieren, aber die Überführung eines akzeptierten Kandidaten in den Erkenntnisraum ist nicht implementiert. |
-| Judgment Materialization | ☐ | ☐ | ☐ | Semantische Urteile werden dokumentiert, aber noch nicht als reguläre prüfbare Artefakte materialisiert. |
-| Contradiction Materialization | ☐ | ☐ | ☐ | Protokollregel ist beschrieben, eine praktische Implementierung fehlt. |
+| Artifact Materialization | ✓ | ✓ | ✓ | `materialization_service.py` v0.1. ART-0001 bis ART-0004 erfolgreich materialisiert. B1 Versionsbindung, B2 Persistenter Übergangszustand, B3 Atomare Materialisierung implementiert und nachgewiesen. |
+| Judgment Materialization | ✓ | ✓ | ☐ | v0.2: `type=judgment` → `JUDG-XXXX.md`. Implementiert, noch kein produktiver Lauf mit echter Submission. |
+| Contradiction Materialization | ✓ | ✓ | ☐ | v0.3: `type=contradiction` → `CONT-XXXX.md`, erfordert mindestens zwei targets. Implementiert, noch kein produktiver Lauf mit echter Submission. |
 
 ---
 
@@ -35,7 +35,7 @@
 |-----------|:------:|:------:|:--------:|-------|
 | Git Integration | ✓ | ✓ | ✓ | Branch, Commit, Push und Rückkehr zu `master` sind im Submission Service implementiert und praktisch nachgewiesen. |
 | Pull Request Workflow | ✓ | ✓ | ✓ | Automatische PR-Erstellung und strukturelle GitHub-Action wurden praktisch durchlaufen. |
-| Merge Workflow | ☐ | ☐ | ☐ | Kein vollständiger Nachweis eines angenommenen Plattformartefakts bis zum Merge und zur Materialisierung vorhanden. |
+| Merge Workflow | ✓ | ✓ | ☐ | PRs #1–#4 wurden gemergt. Kein vollautomatischer Merge-to-Materialization-Übergang implementiert. |
 
 ---
 
@@ -52,20 +52,20 @@
 
 Platform completion:
 
-8 / 13 components complete.
+11 / 13 components complete.
 
 ## Remaining Work
 
-1. Artifact materialization
-2. Judgment materialization
-3. Contradiction materialization
-4. Complete semantic-review-to-materialization transition
-5. Merge workflow
+1. Judgment Materialization: produktiver End-to-End-Lauf mit echter Submission
+2. Contradiction Materialization: produktiver End-to-End-Lauf mit echter Submission
+3. Merge Workflow: vollautomatischer Übergang von Merge zu Materialisierung
 
-## Current Bottleneck
+## Current State
 
-The platform can receive, structurally validate and semantically review
-a submission.
+The platform can now execute the complete lifecycle:
 
-It cannot yet complete an accepted submission by materializing the
-resulting artifact and its judgment into the knowledge space.
+Submission → Structural Validation → Semantic Review → Materialization → Knowledge Space
+
+ART-0001 through ART-0004 have been successfully materialized.
+Judgment and Contradiction materialization are implemented but not yet
+demonstrated with real submissions.
