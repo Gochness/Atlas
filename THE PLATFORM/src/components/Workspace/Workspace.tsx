@@ -4,8 +4,10 @@ import { ObjectExplorer } from "../ObjectExplorer";
 import { ActivityStream } from "../ActivityStream";
 import { ContextInspector } from "../ContextInspector";
 import { ObjectEditor } from "../ObjectEditor";
-import { mockActivityEvents, mockArtifacts, mockSubmissions, resolveSelection } from "../../api/mockData";
+import { mockActivityEvents, resolveSelection } from "../../api/mockData";
 import { realWorkItems } from "../../api/workItems";
+import { realSubmissions } from "../../api/submissions";
+import { realArtifacts } from "../../api/artifacts";
 import type { PlatformObjectId } from "../../types/platform";
 
 // Workspace: die zentrale Koordinationskomponente (siehe
@@ -16,20 +18,21 @@ import type { PlatformObjectId } from "../../types/platform";
 //   -------------------------------------------------------------------------
 //   Activity Stream (unten, ueber die volle Breite)
 //
-// ObjectExplorer zeigt jetzt echte Work Items (realWorkItems, geladen
-// aus THE VAULT/work_items/ - siehe api/workItems.ts) sowie weiterhin
-// gemockte Submissions/Artefakte. Die Auswahl lebt als State im
-// Workspace (selectedId) - "Zustandshoheit beim Workspace" bleibt damit
-// gewahrt, ObjectExplorer selbst haelt weiterhin keinen eigenen Zustand.
+// ObjectExplorer zeigt jetzt echte Work Items, Submissions und Artefakte
+// (realWorkItems/realSubmissions/realArtifacts, geladen aus dem
+// Repository zur Build-Zeit - siehe api/workItems.ts, api/submissions.ts,
+// api/artifacts.ts). Die Auswahl lebt als State im Workspace
+// (selectedId) - "Zustandshoheit beim Workspace" bleibt damit gewahrt,
+// ObjectExplorer selbst haelt weiterhin keinen eigenen Zustand.
 //
-// ActivityStream zeigt Mock-Ereignisse (mockActivityEvents); der Klick-
-// Handler ist weiterhin ein Platzhalter (console.log) - Ereignisse sind
-// nicht Teil dieser Auswahl-Verdrahtung.
+// ActivityStream zeigt weiterhin Mock-Ereignisse (mockActivityEvents);
+// der Klick-Handler bleibt ein Platzhalter (console.log) - Ereignisse
+// sind nicht Teil dieses Schritts.
 //
 // ObjectEditor und ContextInspector erhalten laut Datenfluss (Architektur
 // Abschnitt 6, Schritt 5) dasselbe aktive Objekt vom Workspace: beide
 // bekommen dieselbe `selection`, abgeleitet aus selectedId ueber
-// resolveSelection() (Mock-Aequivalent einer kuenftigen get_object(id)).
+// resolveSelection() (Aequivalent einer kuenftigen get_object(id)).
 //
 // Keine echte API-Anbindung, keine Object-Logik ausser der Auswahl selbst.
 export function Workspace() {
@@ -42,8 +45,8 @@ export function Workspace() {
         <aside className="object-explorer" aria-label="Object Explorer">
           <ObjectExplorer
             workItems={realWorkItems}
-            submissions={mockSubmissions}
-            artifacts={mockArtifacts}
+            submissions={realSubmissions}
+            artifacts={realArtifacts}
             selectedId={selectedId}
             onSelect={setSelectedId}
             onNewObject={() => {}}
