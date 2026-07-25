@@ -1,31 +1,19 @@
 """
-Atlas Materialization Service v0.1
+Atlas Materialization Service v0.2
 
-Verantwortung:
-    Uebernahme eines bereits abgeschlossenen semantischen Urteils und
-    Ueberfuehrung in den Wissensraum (THE LIBRARY/artifacts/).
+Neu in v0.2:
+    - Judgment-Artefakte (type=judgment) werden als JUDG-XXXX.md materialisiert
+    - target kann eine Liste oder ein einzelner Wert sein
+    - Artefakt-Datei wird durch Urteil nicht veraendert
 
 Architekturvorgaben (MATERIALIZATION_GEMINI_REVIEW_001):
-    B1 – Versionsbindung:   Materialisierung wird gegen base_commit geprueft.
-                            Liegt HEAD vor oder nach base_commit, wird
-                            abgebrochen.
+    B1 – Versionsbindung:   base_commit muss Vorfahre von HEAD sein.
     B2 – Persistenter Uebergang:
-                            Vor Materialisierung wird ein Pending-Eintrag
-                            unter THE VAULT/materialization_pending/ angelegt.
-                            Er wird erst nach erfolgreichem Commit geloescht.
-                            Faellt der Prozess zwischendurch aus, ist der
-                            Zustand rekonstruierbar.
+                            Pending-Eintrag unter THE VAULT/materialization_pending/
+                            bleibt bis nach erfolgreichem Commit bestehen.
     B3 – Atomare Materialisierung:
-                            Alle Artefakt-Dateien werden als einzelner
-                            Git-Commit materialisiert. Schlaegt der Commit
-                            fehl, werden alle erzeugten Dateien zurueckgerollt.
-                            Es gibt keine partiellen Ergebnisse auf master.
-
-Grenzen dieser Version:
-    - Kein Judgment- oder Contradiction-Artefakt (folgen spaeter)
-    - Keine automatische Zusammenfuehrung von Urteilen
-    - merge workflow: Materialisierung setzt voraus, dass der PR bereits
-      gemergt ist (master enthaelt die Submission)
+                            Alle Dateien eines Vorgangs in einem einzigen Commit.
+                            Schlaegt der Commit fehl, vollstaendiges Rollback.
 """
 
 import os
@@ -37,12 +25,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-SUBMISSIONS_DIR   = Path("THE WORKSHOPS/platform/submissions")
-ARTIFACTS_DIR     = Path("THE LIBRARY/artifacts")
-PENDING_DIR       = Path("THE VAULT/materialization_pending")
-VALIDATOR         = Path("THE WORKSHOPS/platform/validator/validator.py")
+SUBMISSIONS_DIR = Path("THE WORKSHOPS/platform/submissions")
+ARTIFACTS_DIR   = Path("THE LIBRARY/artifacts")
+PENDING_DIR     = Path("THE VAULT/materialization_pending")
 
-REF_RE = re.compile(r"^ART-\d{4}$")
+ART_REF_RE  = re.compile(r"^ART-\d{4}$")
+JUDG_REF_RE = re.compile(r"^JUDG-\d{4}$")
 
 
 # ---------------------------------------------------------------------------
@@ -51,12 +39,12 @@ REF_RE = re.compile(r"^ART-\d{4}$")
 
 @dataclass
 class MaterializationResult:
-    success: bool
-    submission_id: Optional[str]    = None
-    artifact_ref:  Optional[str]    = None
-    artifact_path: Optional[str]    = None
-    commit_sha:    Optional[str]    = None
-    error:         Optional[str]    = None
+    success:       bool
+    submission_id: Optional[str] = None
+    artifact_ref:  Optional[str] = None
+    artifact_path: Optional[str] = None
+    commit_sha:    Optional[str] = None
+    error:         Optional[str] = None
 
 
 @dataclass
@@ -81,7 +69,6 @@ def _head_sha() -> str:
 
 
 def _commit_reachable(commit: str) -> bool:
-    """Prueft ob base_commit Vorfahre des aktuellen HEAD ist."""
     r = _run(f"git merge-base --is-ancestor {commit} HEAD")
     return r.returncode == 0
 
@@ -100,8 +87,7 @@ def _pending_path(sid: str) -> Path:
 
 def _write_pending(entry: PendingEntry) -> None:
     PENDING_DIR.mkdir(parents=True, exist_ok=True)
-    path = _pending_path(entry.submission_id)
-    with open(path, "w", encoding="utf-8") as f:
+    with open(_pending_path(entry.submission_id), "w", encoding="utf-8") as f:
         yaml.dump({
             "submission_id": entry.submission_id,
             "proposed_ref":  entry.proposed_ref,
@@ -112,13 +98,29 @@ def _write_pending(entry: PendingEntry) -> None:
 
 
 def _delete_pending(sid: str) -> None:
-    path = _pending_path(sid)
-    if path.exists():
-        path.unlink()
+    p = _pending_path(sid)
+    if p.exists():
+        p.unlink()
 
+
+def _normalize_target(target) -> list[str]:
+    """target kann str, list oder None sein."""
+    if target is None:
+        return []
+    if isinstance(target, list):
+        return [str(t).strip() for t in target]
+    return [str(target).strip()]
+
+
+def _today() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+
+# ---------------------------------------------------------------------------
+# Inhalts-Generatoren
+# ---------------------------------------------------------------------------
 
 def _artifact_content(data: dict, sid: str) -> str:
-    """Erzeugt den Inhalt der materialisierten Artefakt-Datei."""
     cand = data["candidate"]
     sub  = data["submission"]
     lines = [
@@ -126,7 +128,41 @@ def _artifact_content(data: dict, sid: str) -> str:
         "",
         f"**Materialisiert aus:** {sid}  ",
         f"**Basis-Commit:** {sub['base_commit']}  ",
-        f"**Materialisiert am:** {datetime.now(timezone.utc).strftime('%Y-%m-%d')}",
+        f"**Materialisiert am:** {_today()}",
+        "",
+        "---",
+        "",
+        "## Behauptung",
+        "",
+        str(cand["claim"]).strip(),
+        "",
+        "## Beobachtungsbasis",
+        "",
+        str(cand["basis"]).strip(),
+        "",
+        "## Gegenversuche",
+        "",
+        str(cand["counter"]).strip(),
+        "",
+        "## Offene Punkte",
+        "",
+        str(cand["open"]).strip(),
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def _judgment_content(data: dict, sid: str) -> str:
+    cand    = data["candidate"]
+    sub     = data["submission"]
+    targets = _normalize_target(sub.get("target"))
+    target_str = ", ".join(targets) if targets else "(kein Ziel angegeben)"
+    lines = [
+        f"# {cand['proposed_ref']}",
+        "",
+        f"**Materialisiert aus:** {sid}  ",
+        f"**Basis-Commit:** {sub['base_commit']}  ",
+        f"**Materialisiert am:** {_today()}",
+        f"**Ziel:** {target_str}",
         "",
         "---",
         "",
@@ -153,56 +189,19 @@ def _artifact_content(data: dict, sid: str) -> str:
 # Kern: Materialisierung
 # ---------------------------------------------------------------------------
 
-def materialize(submission_id: str) -> MaterializationResult:
+def _do_materialize(
+    sid: str,
+    ref: str,
+    content: str,
+    base_commit: str,
+) -> MaterializationResult:
     """
-    Materialisiert eine akzeptierte Submission.
-
-    Ablauf:
-        1. Submission laden und validieren
-        2. B1: Versionsbindung pruefen
-        3. B2: Pending-Eintrag anlegen
-        4. Artefakt-Datei erzeugen
-        5. B3: Atomarer Commit (oder vollstaendiges Rollback)
-        6. Pending-Eintrag loeschen
+    Gemeinsamer Materialisierungskern fuer artifact und judgment.
+    B1, B2 und B3 sind hier implementiert.
     """
 
-    # ------------------------------------------------------------------
-    # 1. Submission laden
-    # ------------------------------------------------------------------
-    data = _load_submission(submission_id)
-    if data is None:
-        return MaterializationResult(
-            success=False,
-            submission_id=submission_id,
-            error=f"Submission nicht gefunden: {submission_id}",
-        )
-
-    sub  = data["submission"]
-    cand = data["candidate"]
-    sid  = sub["id"]
-    ref  = cand["proposed_ref"]
-
-    # Nur artifact/create wird in v0.1 unterstuetzt
-    if sub["type"] != "artifact" or sub["action"] != "create":
-        return MaterializationResult(
-            success=False,
-            submission_id=sid,
-            error=f"v0.1 unterstuetzt nur type=artifact action=create (erhalten: {sub['type']}/{sub['action']})",
-        )
-
-    if not REF_RE.match(ref):
-        return MaterializationResult(
-            success=False,
-            submission_id=sid,
-            error=f"proposed_ref hat ungueltiges Format: {ref}",
-        )
-
-    # ------------------------------------------------------------------
-    # 2. B1 – Versionsbindung
-    # ------------------------------------------------------------------
-    base_commit = str(sub["base_commit"])
-    head        = _head_sha()
-
+    # B1 – Versionsbindung
+    head = _head_sha()
     if not _commit_reachable(base_commit):
         return MaterializationResult(
             success=False,
@@ -210,12 +209,10 @@ def materialize(submission_id: str) -> MaterializationResult:
             artifact_ref=ref,
             error=(
                 f"Versionsbindung verletzt: base_commit {base_commit} ist kein "
-                f"Vorfahre des aktuellen HEAD {head}. "
-                f"Bitte Zustand pruefen."
+                f"Vorfahre des aktuellen HEAD {head}."
             ),
         )
 
-    # Zieldatei
     ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
     artifact_path = ARTIFACTS_DIR / f"{ref}.md"
 
@@ -227,9 +224,7 @@ def materialize(submission_id: str) -> MaterializationResult:
             error=f"Artefakt existiert bereits: {artifact_path}",
         )
 
-    # ------------------------------------------------------------------
-    # 3. B2 – Persistenter Uebergangszustand
-    # ------------------------------------------------------------------
+    # B2 – Pending anlegen
     pending = PendingEntry(
         submission_id=sid,
         proposed_ref=ref,
@@ -239,10 +234,7 @@ def materialize(submission_id: str) -> MaterializationResult:
     )
     _write_pending(pending)
 
-    # ------------------------------------------------------------------
-    # 4. Artefakt-Datei erzeugen
-    # ------------------------------------------------------------------
-    content = _artifact_content(data, sid)
+    # Datei schreiben
     try:
         artifact_path.write_text(content, encoding="utf-8")
     except OSError as e:
@@ -254,14 +246,10 @@ def materialize(submission_id: str) -> MaterializationResult:
             error=f"Datei konnte nicht geschrieben werden: {e}",
         )
 
-    # ------------------------------------------------------------------
-    # 5. B3 – Atomarer Commit (oder Rollback)
-    # ------------------------------------------------------------------
+    # B3 – Atomarer Commit
     pending_file = _pending_path(sid)
-
     r_add = _run(f'git add "{artifact_path}" "{pending_file}"')
     if r_add.returncode != 0:
-        # Rollback
         artifact_path.unlink(missing_ok=True)
         _delete_pending(sid)
         return MaterializationResult(
@@ -271,11 +259,8 @@ def materialize(submission_id: str) -> MaterializationResult:
             error=f"git add fehlgeschlagen: {r_add.stderr}",
         )
 
-    r_commit = _run(
-        f'git commit -m "[{sid}] Materialize {ref}"'
-    )
+    r_commit = _run(f'git commit -m "[{sid}] Materialize {ref}"')
     if r_commit.returncode != 0:
-        # Rollback
         _run("git reset HEAD")
         artifact_path.unlink(missing_ok=True)
         _delete_pending(sid)
@@ -288,16 +273,10 @@ def materialize(submission_id: str) -> MaterializationResult:
 
     sha = _head_sha()
 
-    # ------------------------------------------------------------------
-    # 6. B2 abschliessen – Pending-Eintrag loeschen
-    # ------------------------------------------------------------------
-    # Pending-Eintrag wurde im Commit eingeschlossen; jetzt auf Disk loeschen
-    # und diese Loeschung committen.
+    # B2 abschliessen – Pending loeschen
     _delete_pending(sid)
-    pending_file_deleted = not pending_file.exists()
-
-    if pending_file_deleted:
-        r_del = _run(f'git add "{pending_file}"')
+    if not _pending_path(sid).exists():
+        _run(f'git add "{pending_file}"')
         _run(f'git commit -m "[{sid}] Clear materialization pending"')
 
     return MaterializationResult(
@@ -305,16 +284,73 @@ def materialize(submission_id: str) -> MaterializationResult:
         submission_id=sid,
         artifact_ref=ref,
         artifact_path=str(artifact_path),
-        commit_sha=sha,
+        commit_sha=_head_sha(),
     )
 
 
+def materialize(submission_id: str) -> MaterializationResult:
+    data = _load_submission(submission_id)
+    if data is None:
+        return MaterializationResult(
+            success=False,
+            submission_id=submission_id,
+            error=f"Submission nicht gefunden: {submission_id}",
+        )
+
+    sub  = data["submission"]
+    cand = data["candidate"]
+    sid  = sub["id"]
+    ref  = cand["proposed_ref"]
+    typ  = sub["type"]
+    act  = sub["action"]
+
+    if act != "create":
+        return MaterializationResult(
+            success=False,
+            submission_id=sid,
+            error=f"v0.2 unterstuetzt nur action=create (erhalten: {act})",
+        )
+
+    if typ == "artifact":
+        if not ART_REF_RE.match(ref):
+            return MaterializationResult(
+                success=False,
+                submission_id=sid,
+                error=f"proposed_ref hat ungueltiges Format fuer artifact: {ref}",
+            )
+        content = _artifact_content(data, sid)
+
+    elif typ == "judgment":
+        if not JUDG_REF_RE.match(ref):
+            return MaterializationResult(
+                success=False,
+                submission_id=sid,
+                error=f"proposed_ref hat ungueltiges Format fuer judgment: {ref} (erwartet JUDG-XXXX)",
+            )
+        targets = _normalize_target(sub.get("target"))
+        if not targets:
+            return MaterializationResult(
+                success=False,
+                submission_id=sid,
+                error="judgment erfordert mindestens ein target",
+            )
+        content = _judgment_content(data, sid)
+
+    else:
+        return MaterializationResult(
+            success=False,
+            submission_id=sid,
+            error=f"Typ '{typ}' wird in v0.2 noch nicht unterstuetzt",
+        )
+
+    return _do_materialize(sid, ref, content, str(sub["base_commit"]))
+
+
 # ---------------------------------------------------------------------------
-# Hilfsfunktion: offene Pending-Eintraege pruefen
+# Hilfsfunktion: Pending-Eintraege
 # ---------------------------------------------------------------------------
 
 def list_pending() -> list[PendingEntry]:
-    """Gibt alle offenen Pending-Eintraege zurueck (fuer Recovery)."""
     if not PENDING_DIR.exists():
         return []
     entries = []
