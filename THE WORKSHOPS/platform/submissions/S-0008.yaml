@@ -1,0 +1,46 @@
+submission:
+  id: S-0008
+  type: artifact
+  action: create
+  target: null
+  base_commit: cea4ce0ee2c7b4716eef372486761608bef3ec2a
+  submitted_by: claude-code
+  submitted_at: 2026-07-25T13:00:00Z
+
+candidate:
+  proposed_ref: ART-0006
+  claim: >
+    Der aktuelle Workspace-Zustand von Atlas ist deterministisch aus
+    Repository-Ereignissen ableitbar. PROJECT_STATE.md ist eine erzeugte
+    Projektion dieser Ereignisse, keine primaere Quelle der Wahrheit.
+    Presence (wer ist gerade online) ist nicht aus Git ableitbar und
+    benoetigt einen separaten fluechtigen Laufzeitzustand.
+  basis: >
+    PROJECT_STATE.md war waehrend 37 Commits unveraendert (ART-0003),
+    ohne dass ein Urteil dadurch ungueltig wurde. Das zeigt, dass der
+    tatsaechliche Projektzustand aus den Artefakten und der Git-Historie
+    rekonstruierbar ist, nicht aus PROJECT_STATE.md selbst. Claude Code
+    und Gemini haben am 2026-07-25 unabhaengig denselben Workspace-Zustand
+    aus dem Repository rekonstruiert (MODEL_ENTRY.md-Nachweis). Git
+    speichert Submissions, Materialisierungen, Claims und WARP-Eintraege
+    persistent und reproduzierbar. Echte Live-Presence existiert nicht
+    dauerhaft im Repository und ist daher nicht deterministisch ableitbar.
+  counter: >
+    GV1 - Ist PROJECT_STATE.md nicht bereits die Quelle der Wahrheit?
+    Scheitert: ART-0003 zeigt, dass 37 Commits ohne Aktualisierung von
+    PROJECT_STATE.md korrekt verarbeitet wurden. Die Artefakte, nicht
+    PROJECT_STATE.md, waren massgeblich.
+    GV2 - Koennte ein manuell gepflegtes PROJECT_STATE.md zuverlaessiger
+    sein als eine abgeleitete Projektion? Scheitert: manuelle Pflege hat
+    nachweislich zu Veraltung gefuehrt. Eine deterministische Ableitung
+    ist reproduzierbar pruefbar, manuelle Pflege nicht.
+    GV3 - Ist Presence wirklich nicht aus Git ableitbar? Greift teilweise:
+    vergangene Aktivitaet (letzter Commit, letzte Submission) ist ableitbar.
+    Momentane Anwesenheit ist es nicht. Die Trennlinie liegt zwischen
+    historischer Aktivitaet und Echtzeit-Praesenz.
+  open: >
+    Wie werden veraltete Claims behandelt? Ein Claim der nicht explizit
+    freigegeben wurde bleibt im Repository bestehen, auch wenn der Bewohner
+    laengst nicht mehr aktiv ist. Ein Ablaufmechanismus ist nicht definiert.
+    Welche Ereignisse genau den Workspace State veraendern, ist noch nicht
+    vollstaendig spezifiziert.
