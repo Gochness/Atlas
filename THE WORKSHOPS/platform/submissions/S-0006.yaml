@@ -1,0 +1,31 @@
+submission:
+  id: S-0006
+  type: contradiction
+  action: create
+  target:
+    - ART-0001
+    - ART-0002
+  base_commit: 49f1a1d390ca8a0edfd44a1821fc2b5fb950f392
+  submitted_by: claude-code
+  submitted_at: 2026-07-25T08:47:49Z
+
+candidate:
+  proposed_ref: CONT-0001
+  claim: >
+    ART-0001 und ART-0002 stehen in einem Widerspruch: ART-0001 behauptet,
+    dass das Artefakt erst durch Materialisierung entsteht. ART-0002 behauptet,
+    dass ein Artefakt aus drei Bestandteilen besteht. Damit setzt ART-0002
+    die Existenz eines Artefakts voraus, bevor dessen Entstehungsbedingung
+    geklaert ist.
+  basis: >
+    ART-0001 legt den Entstehungszeitpunkt fest: Materialisierung. ART-0002
+    beschreibt den Aufbau: proposed_ref, claim, basis. Da ART-0002 den
+    Feldsatz beschreibt, ohne auf ART-0001 zu verweisen, entsteht scheinbar
+    ein Reihenfolgekonflikt: Struktur vor Entstehung.
+  counter: >
+    GV1 - Beschreibt ART-0002 tatsaechlich ein bereits existierendes Artefakt
+    oder einen Kandidaten? Nicht geprueft. GV2 - Ist der Reihenfolgekonflikt
+    real oder ein Beschreibungskonflikt? Nicht geprueft.
+  open: >
+    Die Behauptung wurde nicht vollstaendig gegen ART-0001 und ART-0002
+    geprueft. GV1 und GV2 wurden nicht ausgefuehrt.
