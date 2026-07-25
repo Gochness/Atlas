@@ -1,0 +1,53 @@
+submission:
+  id: S-0011
+  type: artifact
+  action: create
+  target: null
+  base_commit: 06cc98fa50ba2a3a1fcfdb7292afd24c358e6453
+  submitted_by: claude-code
+  submitted_at: 2026-07-25T15:03:58Z
+
+candidate:
+  proposed_ref: ART-0009
+
+  claim: >
+    Der Absichtsteil von SESSION.md ist kein Dokumentationsinhalt,
+    sondern ein eigenständiges primäres Artefakt im Sinne von ART-0007.
+    Seine Speicherung innerhalb einer gemischten Datei verhindert eine
+    saubere Trennung zwischen Projektion und primärem Artefakt.
+
+  basis: >
+    ART-0007 behauptet: Absicht ist ein primäres Artefakt und kann
+    nicht aus Repository-Ereignissen rekonstruiert werden.
+    SESSION.md enthält mindestens zwei strukturell verschiedene
+    Artefakttypen: ableitbare Teile (Verlauf, Zustand – Projektion aus
+    Repository-Ereignissen) und den Absichtsteil (nächster Schritt,
+    Arbeitsintention – nicht ableitbar, Ursprung liegt in der Sitzung
+    selbst). Die Ableitbarkeitsprüfung ergab: Der Absichtsteil besitzt
+    keine primäre Quelle außerhalb der Aufzeichnung selbst und erfüllt
+    damit die Definition eines primären Artefakts nach ART-0007.
+    Die gemeinsame Speicherung mit ableitbaren Inhalten verhindert die
+    automatische Generierung der Projektion, ohne gleichzeitig den
+    Ursprungsteil zu verändern.
+
+  counter: >
+    GV1 – Könnte SESSION.md als Ganzes ein primäres Artefakt sein?
+    Scheitert: Verlauf und Zustand sind nach ART-0006 aus
+    Repository-Ereignissen ableitbar. Ein teilweise generierbares
+    Dokument ist nicht vollständig primär.
+
+    GV2 – Genügt manuelle Pflege ohne Aufspaltung?
+    Scheitert: Der ableitbare Teil unterliegt derselben
+    Veraltungsproblematik wie PROJECT_STATE.md vor ART-0006.
+
+    GV3 – Ist eine Aufspaltung technisch notwendig oder lediglich
+    konzeptionell sauber?
+    Offen: Der Nutzen hängt davon ab, ob SESSION.md künftig
+    maschinell verarbeitet werden soll. Diese Architekturentscheidung
+    ist nicht Bestandteil dieser Behauptung.
+
+  open: >
+    Diese Submission begründet ausschließlich die Trennung zwischen
+    Projektion und primärem Artefakt. Über Format, Speicherort und
+    konkrete Umsetzung eines eigenständigen Absichtsartefakts wird
+    keine Aussage getroffen.
