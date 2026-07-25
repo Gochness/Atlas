@@ -146,3 +146,15 @@ auf diese Ebene zu.
 - Netzwerkprotokoll zwischen Frontend und Platform API
 - Authentifizierung oder Autorisierung
 - Persistenzdetails innerhalb der Platform API
+
+---
+
+## 8. Nicht Bestandteil der Frontend-Architektur
+
+- Technologiewahl (Framework, Sprache, Rendering-Modell)
+- Styling und visuelle Gestaltung (definiert in PLATFORM_UX_v1.md und DESIGN_CHARTER.md)
+- Authentifizierung und Autorisierung
+- Direkte Repository- oder Git-Operationen
+- Semantische Bewertung von Plattformobjekten
+- Netzwerkkommunikation unterhalb der Platform API
+- Persistenz und Caching (Verantwortung der API-Schicht)
