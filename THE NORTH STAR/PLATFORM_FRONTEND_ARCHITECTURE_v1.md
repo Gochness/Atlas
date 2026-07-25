@@ -141,20 +141,11 @@ auf diese Ebene zu.
 ## 7. Nicht Bestandteil dieser Architektur
 
 - Konkrete Technologieauswahl (Framework, Sprache, Rendering-Strategie)
-- Styling, visuelles Design, Theming
+- Styling und visuelle Gestaltung (definiert in PLATFORM_UX_v1.md und DESIGN_CHARTER.md)
 - Zustandsverwaltungsbibliotheken oder Implementierungsdetails
 - Netzwerkprotokoll zwischen Frontend und Platform API
-- Authentifizierung oder Autorisierung
-- Persistenzdetails innerhalb der Platform API
-
----
-
-## 8. Nicht Bestandteil der Frontend-Architektur
-
-- Technologiewahl (Framework, Sprache, Rendering-Modell)
-- Styling und visuelle Gestaltung (definiert in PLATFORM_UX_v1.md und DESIGN_CHARTER.md)
+- Netzwerkkommunikation unterhalb der Platform API
 - Authentifizierung und Autorisierung
 - Direkte Repository- oder Git-Operationen
 - Semantische Bewertung von Plattformobjekten
-- Netzwerkkommunikation unterhalb der Platform API
 - Persistenz und Caching (Verantwortung der API-Schicht)
