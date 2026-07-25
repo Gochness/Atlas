@@ -1,5 +1,4 @@
 import type {
-  ActivityEvent,
   ContextInspectorSelection,
   PlatformObjectId,
   WorkspaceContext,
@@ -8,20 +7,10 @@ import { realWorkItems } from "./workItems";
 import { realSubmissions } from "./submissions";
 import { realArtifacts } from "./artifacts";
 
-// Work Items, Submissions und Artefakte werden nicht mehr gemockt - siehe
-// workItems.ts / submissions.ts / artifacts.ts (echte Dateien aus dem
-// Repository, zur Build-Zeit geladen). Nur Activity Stream und der
-// Workspace-Zustand selbst sind noch Platzhalter-Daten.
-
-// Chronologisch (neueste zuerst). Weiterhin Mock-Daten - Ereignisse sind
-// nicht Teil dieses Schritts.
-export const mockActivityEvents: ActivityEvent[] = [
-  { id: "EVT-0005", timestamp: "2026-07-25T15:59:30Z", label: "S-0011 gemergt", objectId: "S-0011" },
-  { id: "EVT-0004", timestamp: "2026-07-25T15:10:00Z", label: "WI-0002 gestartet", objectId: "WI-0002" },
-  { id: "EVT-0003", timestamp: "2026-07-25T15:05:00Z", label: "ART-0008 materialisiert", objectId: "ART-0008" },
-  { id: "EVT-0002", timestamp: "2026-07-25T15:00:00Z", label: "S-0010 eingereicht", objectId: "S-0010" },
-  { id: "EVT-0001", timestamp: "2026-07-25T14:49:00Z", label: "WI-0001 gestartet", objectId: "WI-0001" },
-];
+// Work Items, Submissions, Artefakte und Activity Stream werden nicht
+// mehr gemockt - siehe workItems.ts / submissions.ts / artifacts.ts /
+// activity.ts (echte Dateien aus dem Repository, zur Build-Zeit
+// geladen). Nur der Workspace-Zustand selbst ist noch Platzhalter-Daten.
 
 // Workspace-Kontext bleibt Mock - ueber die aktuelle UI ohnehin nicht
 // auswaehlbar (kein "Workspace waehlen" im Object Explorer).
