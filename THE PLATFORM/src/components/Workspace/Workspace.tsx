@@ -1,4 +1,5 @@
 import "./Workspace.css";
+import { ObjectExplorer } from "../ObjectExplorer";
 
 // Workspace: die zentrale Koordinationskomponente (siehe
 // PLATFORM_FRONTEND_ARCHITECTURE_v1.md, Abschnitt 3). Sie legt die
@@ -8,10 +9,11 @@ import "./Workspace.css";
 //   -------------------------------------------------------------------------
 //   Activity Stream (unten, ueber die volle Breite)
 //
-// Object Explorer und Context Inspector sind hier nur als Platzhalter-
-// Regionen gerendert, nicht als eigene Komponenten (deren Verzeichnisse
-// unter src/components/ bleiben bewusst leer) - das ist ausdruecklich
-// nicht Teil dieses Schritts.
+// ObjectExplorer ist hier nur visuell eingebunden: leere Listen und
+// No-op-Callbacks, keine echten Daten, keine Klicklogik, keine
+// State-Verwaltung im Workspace. Context Inspector bleibt weiterhin
+// Platzhalter-Markup, nicht als eigene Komponente - das ist
+// ausdruecklich nicht Teil dieses Schritts.
 //
 // Keine Plattformdaten, keine API-Anbindung, keine Object-Logik.
 export function Workspace() {
@@ -19,7 +21,14 @@ export function Workspace() {
     <div className="workspace-shell">
       <div className="workspace-main">
         <aside className="object-explorer" aria-label="Object Explorer">
-          <p className="placeholder-label">Object Explorer (Platzhalter)</p>
+          <ObjectExplorer
+            workItems={[]}
+            submissions={[]}
+            artifacts={[]}
+            selectedId={null}
+            onSelect={() => {}}
+            onNewObject={() => {}}
+          />
         </aside>
 
         <main className="workspace-content">
