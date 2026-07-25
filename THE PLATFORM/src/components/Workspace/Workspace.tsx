@@ -4,7 +4,8 @@ import { ObjectExplorer } from "../ObjectExplorer";
 import { ActivityStream } from "../ActivityStream";
 import { ContextInspector } from "../ContextInspector";
 import { ObjectEditor } from "../ObjectEditor";
-import { mockActivityEvents, mockArtifacts, mockSubmissions, mockWorkItems, resolveSelection } from "../../api/mockData";
+import { mockActivityEvents, mockArtifacts, mockSubmissions, resolveSelection } from "../../api/mockData";
+import { realWorkItems } from "../../api/workItems";
 import type { PlatformObjectId } from "../../types/platform";
 
 // Workspace: die zentrale Koordinationskomponente (siehe
@@ -15,11 +16,11 @@ import type { PlatformObjectId } from "../../types/platform";
 //   -------------------------------------------------------------------------
 //   Activity Stream (unten, ueber die volle Breite)
 //
-// ObjectExplorer zeigt jetzt echte Mock-Listen (mockWorkItems/
-// mockSubmissions/mockArtifacts) und ist tatsaechlich klickbar: die
-// Auswahl lebt als State im Workspace (selectedId) - "Zustandshoheit
-// beim Workspace" bleibt damit gewahrt, ObjectExplorer selbst haelt
-// weiterhin keinen eigenen Zustand.
+// ObjectExplorer zeigt jetzt echte Work Items (realWorkItems, geladen
+// aus THE VAULT/work_items/ - siehe api/workItems.ts) sowie weiterhin
+// gemockte Submissions/Artefakte. Die Auswahl lebt als State im
+// Workspace (selectedId) - "Zustandshoheit beim Workspace" bleibt damit
+// gewahrt, ObjectExplorer selbst haelt weiterhin keinen eigenen Zustand.
 //
 // ActivityStream zeigt Mock-Ereignisse (mockActivityEvents); der Klick-
 // Handler ist weiterhin ein Platzhalter (console.log) - Ereignisse sind
@@ -40,7 +41,7 @@ export function Workspace() {
       <div className="workspace-main">
         <aside className="object-explorer" aria-label="Object Explorer">
           <ObjectExplorer
-            workItems={mockWorkItems}
+            workItems={realWorkItems}
             submissions={mockSubmissions}
             artifacts={mockArtifacts}
             selectedId={selectedId}
