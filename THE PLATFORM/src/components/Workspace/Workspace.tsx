@@ -14,6 +14,7 @@ import {
   getWorkItems,
   getWorkSteps,
   publishWorkStep,
+  resolveRepositoryFile,
   setWorkItemContextRefs,
 } from "../../api/platformBridge";
 import type { WorkStepProvider } from "../../api/platformBridge";
@@ -64,6 +65,13 @@ export function Workspace() {
   const [workItemsError, setWorkItemsError] = useState<string | null>(null);
   const [workSteps, setWorkSteps] = useState<WorkStep[]>([]);
   const [workStepsError, setWorkStepsError] = useState<string | null>(null);
+  const [repositoryFilename, setRepositoryFilename] = useState("");
+  const [repositoryFileMatches, setRepositoryFileMatches] = useState<string[]>(
+    [],
+  );
+  const [repositoryFileError, setRepositoryFileError] = useState<string | null>(
+    null,
+  );
   const [workStepProvider, setWorkStepProvider] =
     useState<WorkStepProvider>("openai");
   const selection = resolveSelection(selectedId, workItems);
@@ -178,6 +186,24 @@ export function Workspace() {
     }
   }
 
+  async function handleResolveRepositoryFile() {
+    if (!selectedId || !selectedId.startsWith("WI-")) {
+      window.alert("Bitte zuerst ein Work Item auswaehlen.");
+      return;
+    }
+
+    const filename = repositoryFilename.trim();
+    if (!filename) return;
+
+    try {
+      setRepositoryFileMatches(await resolveRepositoryFile(filename));
+      setRepositoryFileError(null);
+    } catch (err) {
+      setRepositoryFileMatches([]);
+      setRepositoryFileError(String(err));
+    }
+  }
+
   return (
     <div className="workspace-shell">
       <div className="workspace-main">
@@ -241,6 +267,36 @@ export function Workspace() {
               </ul>
             )}
           </section>
+
+          {selectedId?.startsWith("WI-") ? (
+            <section aria-label="Repository-Datei suchen">
+              <h2>Repository-Datei suchen</h2>
+              <label htmlFor="repository-filename">Exakter Dateiname:</label>{" "}
+              <input
+                id="repository-filename"
+                type="text"
+                value={repositoryFilename}
+                onChange={(event) => setRepositoryFilename(event.target.value)}
+              />{" "}
+              <button
+                type="button"
+                onClick={() => void handleResolveRepositoryFile()}
+              >
+                Suchen
+              </button>
+              {repositoryFileError ? (
+                <p>Dateisuche fehlgeschlagen: {repositoryFileError}</p>
+              ) : repositoryFileMatches.length === 0 ? (
+                <p>Keine Treffer.</p>
+              ) : (
+                <ul>
+                  {repositoryFileMatches.map((path) => (
+                    <li key={path}>{path}</li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : null}
 
           <ObjectEditor
             selection={selection}

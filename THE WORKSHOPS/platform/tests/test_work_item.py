@@ -19,6 +19,7 @@ from work_item import (  # noqa: E402
     complete,
     list_work_items,
     read_context_files,
+    resolve_repository_files,
     set_context_refs,
     start,
 )
@@ -247,6 +248,111 @@ def test_set_context_refs_rejects_closed_work_item(tmp_path):
 
     assert updated.success is False
     assert "nicht offen" in updated.error
+
+
+# ---------------------------------------------------------------------------
+# repository file resolution
+# ---------------------------------------------------------------------------
+
+def test_resolve_repository_files_finds_unique_file_case_insensitively(tmp_path):
+    target = tmp_path / "THE WORKSHOPS" / "platform" / "materialization_service.py"
+    target.parent.mkdir(parents=True)
+    target.write_text("content is not returned", encoding="utf-8")
+
+    assert resolve_repository_files("Materialization_Service.py", tmp_path) == [
+        "THE WORKSHOPS/platform/materialization_service.py"
+    ]
+
+
+def test_resolve_repository_files_returns_empty_for_missing_file(tmp_path):
+    assert resolve_repository_files("missing.py", tmp_path) == []
+
+
+def test_resolve_repository_files_returns_all_matches_sorted(tmp_path):
+    for relative_path in ("zeta/shared.py", "Alpha/shared.py", "middle/shared.py"):
+        target = tmp_path / relative_path
+        target.parent.mkdir(parents=True)
+        target.write_text("test", encoding="utf-8")
+
+    assert resolve_repository_files("shared.py", tmp_path) == [
+        "Alpha/shared.py",
+        "middle/shared.py",
+        "zeta/shared.py",
+    ]
+
+
+@pytest.mark.parametrize(
+    "relative_path",
+    [
+        ".git/config",
+        ".venv/config",
+        ".env",
+        ".env.local",
+        "private.key",
+        "certificate.pem",
+        "credentials/data.json",
+        "client_secret/data.json",
+    ],
+)
+def test_resolve_repository_files_hides_sensitive_existing_files(
+    tmp_path,
+    relative_path,
+):
+    target = tmp_path / relative_path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("sensitive", encoding="utf-8")
+
+    assert resolve_repository_files(target.name, tmp_path) == []
+
+
+def test_resolve_repository_files_hides_symlink_escape(tmp_path):
+    repo_root = tmp_path / "repo"
+    repo_root.mkdir()
+    outside = tmp_path / "outside.py"
+    outside.write_text("outside", encoding="utf-8")
+    link = repo_root / "outside.py"
+    try:
+        link.symlink_to(outside)
+    except OSError as error:
+        pytest.skip(f"Symlinks auf dieser Testplattform nicht verfuegbar: {error}")
+
+    assert resolve_repository_files("outside.py", repo_root) == []
+
+
+@pytest.mark.parametrize(
+    "filename",
+    ["", " ", "../file.py", "folder/file.py", r"folder\file.py", "*.py", "file?.py"],
+)
+def test_resolve_repository_files_rejects_non_exact_filename(tmp_path, filename):
+    with pytest.raises(ValueError):
+        resolve_repository_files(filename, tmp_path)
+
+
+def test_resolve_repository_files_does_not_mutate_repository(tmp_path):
+    work_item = tmp_path / "THE VAULT" / "work_items" / "WI-0001.yaml"
+    work_step = tmp_path / "THE VAULT" / "work_steps" / "WS-0001.yaml"
+    candidate = tmp_path / "docs" / "context.txt"
+    for path, content in (
+        (work_item, "work item"),
+        (work_step, "work step"),
+        (candidate, "context"),
+    ):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+
+    before = {
+        path.relative_to(tmp_path).as_posix(): path.read_bytes()
+        for path in tmp_path.rglob("*")
+        if path.is_file()
+    }
+    assert resolve_repository_files("context.txt", tmp_path) == ["docs/context.txt"]
+    after = {
+        path.relative_to(tmp_path).as_posix(): path.read_bytes()
+        for path in tmp_path.rglob("*")
+        if path.is_file()
+    }
+
+    assert after == before
 
 
 # ---------------------------------------------------------------------------

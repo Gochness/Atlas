@@ -37,6 +37,10 @@ export async function getWorkItems(): Promise<WorkItem[]> {
   return invoke<WorkItem[]>("get_work_items");
 }
 
+export async function resolveRepositoryFile(filename: string): Promise<string[]> {
+  return invoke<string[]>("resolve_repository_file", { filename });
+}
+
 export async function setWorkItemContextRefs(
   workItemId: string,
   contextRefs: string[],

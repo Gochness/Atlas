@@ -138,6 +138,34 @@ fn get_work_items() -> Result<Vec<WorkItem>, String> {
 }
 
 #[tauri::command]
+fn resolve_repository_file(filename: String) -> Result<Vec<String>, String> {
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let output = Command::new(python)
+        .arg("THE WORKSHOPS/platform/work_item.py")
+        .arg("resolve-file")
+        .arg(&filename)
+        .current_dir(repo_root)
+        .output()
+        .map_err(|e| format!("work_item.py konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if !output.status.success() {
+        return Err(if !stdout.is_empty() {
+            stdout
+        } else if !stderr.is_empty() {
+            stderr
+        } else {
+            "work_item.py ist fehlgeschlagen (kein Ausgabetext)".to_string()
+        });
+    }
+
+    serde_json::from_str(&stdout).map_err(|e| format!("Unerwartete Ausgabe von work_item.py: {e}"))
+}
+
+#[tauri::command]
 fn set_work_item_context_refs(
     work_item_id: String,
     context_refs: Vec<String>,
@@ -318,6 +346,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             create_work_item,
             get_work_items,
+            resolve_repository_file,
             set_work_item_context_refs,
             publish_work_step,
             generate_work_step,

@@ -9,6 +9,7 @@ Repository rekonstruierbar).
 Befehle:
     python work_item.py start --by <id> "<intent>"
     python work_item.py list
+    python work_item.py resolve-file <filename>
     python work_item.py set-context-refs WI-XXXX '["path/to/file"]'
     python work_item.py complete WI-XXXX
     python work_item.py abandon WI-XXXX
@@ -178,6 +179,43 @@ def validate_context_refs(
     return [item["path"] for item in read_context_files(context_refs, repo_root)]
 
 
+def resolve_repository_files(
+    filename: str,
+    repo_root: Path = REPO_ROOT,
+) -> list[str]:
+    if not isinstance(filename, str) or not filename.strip():
+        raise ValueError("Dateiname darf nicht leer sein")
+
+    filename = filename.strip()
+    candidate_name = Path(filename)
+    if (
+        candidate_name.name != filename
+        or filename in {".", ".."}
+        or any(marker in filename for marker in ("*", "?", "[", "]"))
+    ):
+        raise ValueError("Nur ein exakter Dateiname ohne Pfad oder Wildcards ist erlaubt")
+
+    root = repo_root.resolve()
+    matches: list[str] = []
+
+    for candidate in root.rglob("*"):
+        if candidate.name.casefold() != filename.casefold():
+            continue
+
+        try:
+            resolved = candidate.resolve(strict=True)
+            relative_path = resolved.relative_to(root)
+        except (FileNotFoundError, OSError, ValueError):
+            continue
+
+        if _is_sensitive_path(relative_path) or not resolved.is_file():
+            continue
+
+        matches.append(relative_path.as_posix())
+
+    return sorted(set(matches), key=str.casefold)
+
+
 # ---------------------------------------------------------------------------
 # Kernfunktionen
 # ---------------------------------------------------------------------------
@@ -315,6 +353,18 @@ def main():
             print("Verwendung: python work_item.py list")
             sys.exit(1)
         print(json.dumps(list_work_items(), ensure_ascii=False))
+        sys.exit(0)
+
+    elif cmd == "resolve-file":
+        if len(args) != 2:
+            print("Verwendung: python work_item.py resolve-file <filename>")
+            sys.exit(1)
+        try:
+            matches = resolve_repository_files(args[1])
+        except ValueError as error:
+            print(f"FEHLER: {error}")
+            sys.exit(1)
+        print(json.dumps(matches, ensure_ascii=False))
         sys.exit(0)
 
     elif cmd == "set-context-refs":
