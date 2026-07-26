@@ -22,7 +22,7 @@ export interface SubmitStructuredResult {
   pullRequestUrl: string;
 }
 
-export type WorkStepProvider = "openai" | "anthropic";
+export type WorkStepProvider = "openai" | "anthropic" | "gemini";
 
 export async function createWorkItem(intent: string, createdBy: string): Promise<WorkItem> {
   const result = await invoke<CreateWorkItemResult>("create_work_item", {

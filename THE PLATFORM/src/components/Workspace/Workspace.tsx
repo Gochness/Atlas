@@ -252,6 +252,7 @@ export function Workspace() {
             >
               <option value="openai">OpenAI</option>
               <option value="anthropic">Claude</option>
+              <option value="gemini">Gemini</option>
             </select>{" "}
             <button type="button" onClick={handleGenerateWorkStep}>
               Modell arbeiten lassen

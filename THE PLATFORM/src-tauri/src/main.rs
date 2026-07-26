@@ -312,6 +312,7 @@ fn work_step_adapter(provider: &str) -> Result<&'static str, String> {
     match provider {
         "openai" => Ok("THE WORKSHOPS/platform/openai_work_step.py"),
         "anthropic" => Ok("THE WORKSHOPS/platform/anthropic_work_step.py"),
+        "gemini" => Ok("THE WORKSHOPS/platform/gemini_work_step.py"),
         _ => Err(format!("Unbekannter WorkStep-Provider: {provider}")),
     }
 }
@@ -419,6 +420,10 @@ mod tests {
         assert_eq!(
             work_step_adapter("anthropic").unwrap(),
             "THE WORKSHOPS/platform/anthropic_work_step.py"
+        );
+        assert_eq!(
+            work_step_adapter("gemini").unwrap(),
+            "THE WORKSHOPS/platform/gemini_work_step.py"
         );
     }
 
