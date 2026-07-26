@@ -6,7 +6,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 #[derive(Serialize)]
@@ -57,15 +57,28 @@ fn repo_root() -> PathBuf {
         .to_path_buf()
 }
 
+fn atlas_python_at(repo_root: &Path) -> Result<PathBuf, String> {
+    let python = repo_root.join(".venv").join("Scripts").join("python.exe");
+    if !python.is_file() {
+        return Err(format!(
+            "Atlas-Python nicht gefunden: {}",
+            python.display()
+        ));
+    }
+    Ok(python)
+}
+
 #[tauri::command]
 fn create_work_item(intent: String, created_by: String) -> Result<CreateWorkItemResult, String> {
-    let output = Command::new("python")
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let output = Command::new(python)
         .arg("THE WORKSHOPS/platform/work_item.py")
         .arg("start")
         .arg("--by")
         .arg(&created_by)
         .arg(&intent)
-        .current_dir(repo_root())
+        .current_dir(repo_root)
         .output()
         .map_err(|e| format!("work_item.py konnte nicht gestartet werden: {e}"))?;
 
@@ -100,10 +113,12 @@ fn create_work_item(intent: String, created_by: String) -> Result<CreateWorkItem
 
 #[tauri::command]
 fn get_work_items() -> Result<Vec<WorkItem>, String> {
-    let output = Command::new("python")
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let output = Command::new(python)
         .arg("THE WORKSHOPS/platform/work_item.py")
         .arg("list")
-        .current_dir(repo_root())
+        .current_dir(repo_root)
         .output()
         .map_err(|e| format!("work_item.py konnte nicht gestartet werden: {e}"))?;
 
@@ -130,7 +145,9 @@ fn publish_work_step(
     participant_id: String,
     content: String,
 ) -> Result<PublishWorkStepResult, String> {
-    let output = Command::new("python")
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let output = Command::new(python)
         .arg("THE WORKSHOPS/platform/work_step.py")
         .arg("publish")
         .arg("--work-item")
@@ -138,7 +155,7 @@ fn publish_work_step(
         .arg("--by")
         .arg(&participant_id)
         .arg(&content)
-        .current_dir(repo_root())
+        .current_dir(repo_root)
         .output()
         .map_err(|e| format!("work_step.py konnte nicht gestartet werden: {e}"))?;
 
@@ -184,12 +201,14 @@ fn generate_work_step(
     work_item_id: String,
 ) -> Result<PublishWorkStepResult, String> {
     let script = work_step_adapter(&provider)?;
-    let output = Command::new("python")
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let output = Command::new(python)
         .arg(script)
         .arg("generate")
         .arg("--work-item")
         .arg(&work_item_id)
-        .current_dir(repo_root())
+        .current_dir(repo_root)
         .output()
         .map_err(|e| format!("{script} konnte nicht gestartet werden: {e}"))?;
 
@@ -223,12 +242,14 @@ fn generate_work_step(
 
 #[tauri::command]
 fn get_work_steps(work_item_id: String) -> Result<Vec<WorkStep>, String> {
-    let output = Command::new("python")
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let output = Command::new(python)
         .arg("THE WORKSHOPS/platform/work_step.py")
         .arg("list")
         .arg("--work-item")
         .arg(&work_item_id)
-        .current_dir(repo_root())
+        .current_dir(repo_root)
         .output()
         .map_err(|e| format!("work_step.py konnte nicht gestartet werden: {e}"))?;
 
@@ -264,7 +285,7 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use super::work_step_adapter;
+    use super::{atlas_python_at, repo_root, work_step_adapter};
 
     #[test]
     fn work_step_adapter_accepts_supported_providers() {
@@ -283,6 +304,29 @@ mod tests {
         assert_eq!(
             work_step_adapter("unknown").unwrap_err(),
             "Unbekannter WorkStep-Provider: unknown"
+        );
+    }
+
+    #[test]
+    fn atlas_python_uses_project_venv() {
+        let root = repo_root();
+        assert_eq!(
+            atlas_python_at(&root).unwrap(),
+            root.join(".venv").join("Scripts").join("python.exe")
+        );
+    }
+
+    #[test]
+    fn atlas_python_rejects_missing_venv() {
+        let missing_root = repo_root().join("does-not-exist");
+        let expected = missing_root
+            .join(".venv")
+            .join("Scripts")
+            .join("python.exe");
+
+        assert_eq!(
+            atlas_python_at(&missing_root).unwrap_err(),
+            format!("Atlas-Python nicht gefunden: {}", expected.display())
         );
     }
 }
