@@ -22,6 +22,13 @@ struct PublishWorkStepResult {
     path: String,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SubmitStructuredResult {
+    submission_id: String,
+    pull_request_url: String,
+}
+
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
 struct WorkItem {
@@ -212,6 +219,48 @@ fn set_work_item_context_refs(
 }
 
 #[tauri::command]
+fn submit_structured(data: serde_json::Value) -> Result<SubmitStructuredResult, String> {
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let data_json = serde_json::to_string(&data)
+        .map_err(|e| format!("Submission-Daten konnten nicht serialisiert werden: {e}"))?;
+    let script = "THE WORKSHOPS/platform/submit_structured.py";
+    let output = Command::new(python)
+        .arg(script)
+        .arg(data_json)
+        .current_dir(repo_root)
+        .output()
+        .map_err(|e| format!("{script} konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if !output.status.success() {
+        return Err(if !stdout.is_empty() {
+            stdout
+        } else if !stderr.is_empty() {
+            stderr
+        } else {
+            format!("{script} ist fehlgeschlagen (kein Ausgabetext)")
+        });
+    }
+
+    // Erfolgsformat von submit_structured.py: "OK  S-XXXX  <pull-request-url>"
+    let rest = stdout
+        .strip_prefix("OK")
+        .ok_or_else(|| format!("Unerwartete Ausgabe von {script}: {stdout}"))?;
+    let parts: Vec<&str> = rest.split_whitespace().collect();
+    if parts.len() < 2 {
+        return Err(format!("Unerwartete Ausgabe von {script}: {stdout}"));
+    }
+
+    Ok(SubmitStructuredResult {
+        submission_id: parts[0].to_string(),
+        pull_request_url: parts[1..].join(" "),
+    })
+}
+
+#[tauri::command]
 fn publish_work_step(
     work_item_id: String,
     participant_id: String,
@@ -348,6 +397,7 @@ fn main() {
             get_work_items,
             resolve_repository_file,
             set_work_item_context_refs,
+            submit_structured,
             publish_work_step,
             generate_work_step,
             get_work_steps
