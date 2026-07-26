@@ -1,0 +1,46 @@
+.arbeitslage {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.arbeitslage-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b6b70;
+  margin: 0 0 12px;
+}
+
+.arbeitslage-fields {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.arbeitslage-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.arbeitslage-field-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b6b70;
+}
+
+.arbeitslage-field-value {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #1c1c1e;
+  word-break: break-word;
+}
+
+.arbeitslage-field-empty {
+  color: #9a9a9e;
+}

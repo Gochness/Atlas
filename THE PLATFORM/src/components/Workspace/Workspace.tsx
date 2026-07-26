@@ -4,6 +4,7 @@ import { ObjectExplorer } from "../ObjectExplorer";
 import { ActivityStream } from "../ActivityStream";
 import { ContextInspector } from "../ContextInspector";
 import { ObjectEditor } from "../ObjectEditor";
+import { Arbeitslage } from "../Arbeitslage";
 import { resolveSelection } from "../../api/mockData";
 import { realSubmissions } from "../../api/submissions";
 import { realArtifacts } from "../../api/artifacts";
@@ -59,6 +60,11 @@ import type { PlatformObjectId, WorkItem, WorkStep } from "../../types/platform"
 // Teilnehmer und Inhalt werden fuer diesen minimalen Durchstich ebenfalls
 // ueber window.prompt() eingegeben. Die Persistenz laeuft ueber
 // publishWorkStep() -> Tauri -> work_step.py -> THE VAULT/work_steps/.
+//
+// Arbeitslage v0.1 (siehe components/Arbeitslage): reine Projektion aus
+// bereits vorhandenen workItems/workSteps, kein neuer Ladepfad, keine
+// neue Semantik - siehe Kommentar dort fuer die dokumentierte Grundlage
+// der "letzter Beitrag"-Reihenfolge.
 export function Workspace() {
   const [selectedId, setSelectedId] = useState<PlatformObjectId | null>(null);
   const [workItems, setWorkItems] = useState<WorkItem[]>([]);
@@ -78,6 +84,7 @@ export function Workspace() {
   const [workStepProvider, setWorkStepProvider] =
     useState<WorkStepProvider>("openai");
   const selection = resolveSelection(selectedId, workItems);
+  const selectedWorkItem = workItems.find((w) => w.id === selectedId) ?? null;
 
   async function refreshWorkItems() {
     try {
@@ -258,6 +265,10 @@ export function Workspace() {
               Modell arbeiten lassen
             </button>
           </div>
+
+          {selectedWorkItem ? (
+            <Arbeitslage workItem={selectedWorkItem} workSteps={workSteps} />
+          ) : null}
 
           <section aria-label="WorkSteps">
             <h2>Zwischenstaende</h2>
