@@ -17,6 +17,7 @@ Alle Felder ausser work_item_id, participant_id und content werden
 vom System ergaenzt.
 """
 
+import json
 import re
 import sys
 from dataclasses import dataclass
@@ -127,6 +128,37 @@ def publish(
     )
 
 
+def list_for_work_item(
+    work_item_id: str,
+    work_steps_dir: Path = WORK_STEPS_DIR,
+) -> list[dict]:
+    if not WORK_ITEM_REF_RE.match(work_item_id):
+        return []
+
+    work_steps: list[dict] = []
+    if not work_steps_dir.exists():
+        return work_steps
+
+    for path in sorted(work_steps_dir.glob("WS-*.yaml")):
+        with open(path, encoding="utf-8") as file:
+            data = yaml.safe_load(file)
+
+        if not isinstance(data, dict) or data.get("work_item_id") != work_item_id:
+            continue
+
+        work_steps.append(
+            {
+                "id": data["id"],
+                "work_item_id": data["work_item_id"],
+                "participant_id": data["participant_id"],
+                "content": data["content"],
+                "created_at": data["created_at"],
+            }
+        )
+
+    return work_steps
+
+
 def _print_result(result: WorkStepResult) -> None:
     if result.success:
         print(f"OK  {result.id}  {result.path}")
@@ -168,6 +200,24 @@ def main() -> None:
 
         _print_result(result)
         sys.exit(0 if result.success else 1)
+
+    if command == "list":
+        rest = args[1:]
+
+        if len(rest) != 2 or rest[0] != "--work-item":
+            print(
+                "Verwendung: python work_step.py list "
+                "--work-item WI-XXXX"
+            )
+            sys.exit(1)
+
+        print(
+            json.dumps(
+                list_for_work_item(rest[1]),
+                ensure_ascii=False,
+            )
+        )
+        sys.exit(0)
 
     print(__doc__)
     sys.exit(1)

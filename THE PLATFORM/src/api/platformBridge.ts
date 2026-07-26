@@ -49,3 +49,7 @@ export async function publishWorkStep(
     createdAt: new Date().toISOString(),
   };
 }
+
+export async function getWorkSteps(workItemId: string): Promise<WorkStep[]> {
+  return invoke<WorkStep[]>("get_work_steps", { workItemId });
+}

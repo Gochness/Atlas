@@ -5,7 +5,7 @@
 // Prozess) ist damit bewusst nicht vorweggenommen.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -20,6 +20,16 @@ struct CreateWorkItemResult {
 struct PublishWorkStepResult {
     id: String,
     path: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
+struct WorkStep {
+    id: String,
+    work_item_id: String,
+    participant_id: String,
+    content: String,
+    created_at: String,
 }
 
 // CARGO_MANIFEST_DIR zeigt zur Kompilierzeit auf THE PLATFORM/src-tauri;
@@ -123,11 +133,40 @@ fn publish_work_step(
     })
 }
 
+#[tauri::command]
+fn get_work_steps(work_item_id: String) -> Result<Vec<WorkStep>, String> {
+    let output = Command::new("python")
+        .arg("THE WORKSHOPS/platform/work_step.py")
+        .arg("list")
+        .arg("--work-item")
+        .arg(&work_item_id)
+        .current_dir(repo_root())
+        .output()
+        .map_err(|e| format!("work_step.py konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if !output.status.success() {
+        return Err(if !stdout.is_empty() {
+            stdout
+        } else if !stderr.is_empty() {
+            stderr
+        } else {
+            "work_step.py ist fehlgeschlagen (kein Ausgabetext)".to_string()
+        });
+    }
+
+    serde_json::from_str(&stdout)
+        .map_err(|e| format!("Unerwartete Ausgabe von work_step.py: {e}"))
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             create_work_item,
-            publish_work_step
+            publish_work_step,
+            get_work_steps
         ])
         .run(tauri::generate_context!())
         .expect("error while running Atlas Platform");

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./Workspace.css";
 import { ObjectExplorer } from "../ObjectExplorer";
 import { ActivityStream } from "../ActivityStream";
@@ -9,8 +9,12 @@ import { realWorkItems } from "../../api/workItems";
 import { realSubmissions } from "../../api/submissions";
 import { realArtifacts } from "../../api/artifacts";
 import { realActivityEvents } from "../../api/activity";
-import { createWorkItem, publishWorkStep } from "../../api/platformBridge";
-import type { PlatformObjectId, WorkItem } from "../../types/platform";
+import {
+  createWorkItem,
+  getWorkSteps,
+  publishWorkStep,
+} from "../../api/platformBridge";
+import type { PlatformObjectId, WorkItem, WorkStep } from "../../types/platform";
 
 // Workspace: die zentrale Koordinationskomponente (siehe
 // PLATFORM_FRONTEND_ARCHITECTURE_v1.md, Abschnitt 3). Sie legt die
@@ -56,8 +60,30 @@ import type { PlatformObjectId, WorkItem } from "../../types/platform";
 export function Workspace() {
   const [selectedId, setSelectedId] = useState<PlatformObjectId | null>(null);
   const [newWorkItems, setNewWorkItems] = useState<WorkItem[]>([]);
+  const [workSteps, setWorkSteps] = useState<WorkStep[]>([]);
+  const [workStepsError, setWorkStepsError] = useState<string | null>(null);
   const allWorkItems = [...realWorkItems, ...newWorkItems];
   const selection = resolveSelection(selectedId, newWorkItems);
+
+  async function refreshWorkSteps(workItemId: string) {
+    try {
+      setWorkSteps(await getWorkSteps(workItemId));
+      setWorkStepsError(null);
+    } catch (err) {
+      setWorkSteps([]);
+      setWorkStepsError(String(err));
+    }
+  }
+
+  useEffect(() => {
+    if (!selectedId?.startsWith("WI-")) {
+      setWorkSteps([]);
+      setWorkStepsError(null);
+      return;
+    }
+
+    void refreshWorkSteps(selectedId);
+  }, [selectedId]);
 
   async function handleNewObject() {
     const intent = window.prompt("Intent des neuen Work Items:");
@@ -94,6 +120,7 @@ export function Workspace() {
         content.trim(),
       );
 
+      await refreshWorkSteps(selectedId);
       window.alert(`Zwischenstand ${workStep.id} wurde veroeffentlicht.`);
     } catch (err) {
       window.alert(`Zwischenstand konnte nicht veroeffentlicht werden: ${err}`);
@@ -118,6 +145,27 @@ export function Workspace() {
           <button type="button" onClick={handlePublishWorkStep}>
             Zwischenstand veroeffentlichen
           </button>
+
+          <section aria-label="WorkSteps">
+            <h2>Zwischenstaende</h2>
+            {workStepsError ? (
+              <p>Zwischenstaende konnten nicht geladen werden: {workStepsError}</p>
+            ) : workSteps.length === 0 ? (
+              <p>Keine Zwischenstaende vorhanden.</p>
+            ) : (
+              <ul>
+                {workSteps.map((workStep) => (
+                  <li key={workStep.id}>
+                    <strong>{workStep.participantId}</strong>: {workStep.content}
+                    <small>
+                      {" "}
+                      ({workStep.id}, {workStep.createdAt})
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
           <ObjectEditor selection={selection} />
         </main>
