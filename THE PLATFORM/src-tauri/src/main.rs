@@ -16,6 +16,12 @@ struct CreateWorkItemResult {
     path: String,
 }
 
+#[derive(Serialize)]
+struct PublishWorkStepResult {
+    id: String,
+    path: String,
+}
+
 // CARGO_MANIFEST_DIR zeigt zur Kompilierzeit auf THE PLATFORM/src-tauri;
 // zwei Ebenen hoch ist der Atlas-Repo-Root. work_item.py erwartet einen
 // relativen Pfad (THE VAULT/work_items) und muss deshalb mit diesem
@@ -71,9 +77,58 @@ fn create_work_item(intent: String, created_by: String) -> Result<CreateWorkItem
     })
 }
 
+#[tauri::command]
+fn publish_work_step(
+    work_item_id: String,
+    participant_id: String,
+    content: String,
+) -> Result<PublishWorkStepResult, String> {
+    let output = Command::new("python")
+        .arg("THE WORKSHOPS/platform/work_step.py")
+        .arg("publish")
+        .arg("--work-item")
+        .arg(&work_item_id)
+        .arg("--by")
+        .arg(&participant_id)
+        .arg(&content)
+        .current_dir(repo_root())
+        .output()
+        .map_err(|e| format!("work_step.py konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if !output.status.success() {
+        return Err(if !stdout.is_empty() {
+            stdout
+        } else if !stderr.is_empty() {
+            stderr
+        } else {
+            "work_step.py ist fehlgeschlagen (kein Ausgabetext)".to_string()
+        });
+    }
+
+    // Erfolgsformat von work_step.py: "OK  WS-XXXX  <path>"
+    let rest = stdout
+        .strip_prefix("OK")
+        .ok_or_else(|| format!("Unerwartete Ausgabe von work_step.py: {stdout}"))?;
+    let parts: Vec<&str> = rest.split_whitespace().collect();
+    if parts.len() < 2 {
+        return Err(format!("Unerwartete Ausgabe von work_step.py: {stdout}"));
+    }
+
+    Ok(PublishWorkStepResult {
+        id: parts[0].to_string(),
+        path: parts[1..].join(" "),
+    })
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![create_work_item])
+        .invoke_handler(tauri::generate_handler![
+            create_work_item,
+            publish_work_step
+        ])
         .run(tauri::generate_context!())
         .expect("error while running Atlas Platform");
 }
