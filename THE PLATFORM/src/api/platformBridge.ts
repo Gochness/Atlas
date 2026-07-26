@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { WorkItem, WorkItemStatus } from "../types/platform";
+import type { WorkItem, WorkItemStatus, WorkStep } from "../types/platform";
 
 // Erster echter Schreibpfad der Plattform: ruft den Tauri-Command
 // create_work_item auf, der seinerseits das bestehende work_item.py als
@@ -9,6 +9,11 @@ import type { WorkItem, WorkItemStatus } from "../types/platform";
 interface CreateWorkItemResult {
   id: string;
   status: string;
+  path: string;
+}
+
+interface PublishWorkStepResult {
+  id: string;
   path: string;
 }
 
@@ -22,5 +27,25 @@ export async function createWorkItem(intent: string, createdBy: string): Promise
     intent,
     createdBy,
     status: result.status as WorkItemStatus,
+  };
+}
+
+export async function publishWorkStep(
+  workItemId: string,
+  participantId: string,
+  content: string,
+): Promise<WorkStep> {
+  const result = await invoke<PublishWorkStepResult>("publish_work_step", {
+    workItemId,
+    participantId,
+    content,
+  });
+
+  return {
+    id: result.id,
+    workItemId,
+    participantId,
+    content,
+    createdAt: new Date().toISOString(),
   };
 }
