@@ -133,6 +133,57 @@ fn publish_work_step(
     })
 }
 
+fn work_step_adapter(provider: &str) -> Result<&'static str, String> {
+    match provider {
+        "openai" => Ok("THE WORKSHOPS/platform/openai_work_step.py"),
+        "anthropic" => Ok("THE WORKSHOPS/platform/anthropic_work_step.py"),
+        _ => Err(format!("Unbekannter WorkStep-Provider: {provider}")),
+    }
+}
+
+#[tauri::command]
+fn generate_work_step(
+    provider: String,
+    work_item_id: String,
+) -> Result<PublishWorkStepResult, String> {
+    let script = work_step_adapter(&provider)?;
+    let output = Command::new("python")
+        .arg(script)
+        .arg("generate")
+        .arg("--work-item")
+        .arg(&work_item_id)
+        .current_dir(repo_root())
+        .output()
+        .map_err(|e| format!("{script} konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if !output.status.success() {
+        return Err(if !stderr.is_empty() {
+            stderr
+        } else if !stdout.is_empty() {
+            stdout
+        } else {
+            format!("{script} ist fehlgeschlagen (kein Ausgabetext)")
+        });
+    }
+
+    // Erfolgsformat beider Adapter: "OK  WS-XXXX  <path>"
+    let rest = stdout
+        .strip_prefix("OK")
+        .ok_or_else(|| format!("Unerwartete Ausgabe von {script}: {stdout}"))?;
+    let parts: Vec<&str> = rest.split_whitespace().collect();
+    if parts.len() < 2 {
+        return Err(format!("Unerwartete Ausgabe von {script}: {stdout}"));
+    }
+
+    Ok(PublishWorkStepResult {
+        id: parts[0].to_string(),
+        path: parts[1..].join(" "),
+    })
+}
+
 #[tauri::command]
 fn get_work_steps(work_item_id: String) -> Result<Vec<WorkStep>, String> {
     let output = Command::new("python")
@@ -166,8 +217,34 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             create_work_item,
             publish_work_step,
+            generate_work_step,
             get_work_steps
         ])
         .run(tauri::generate_context!())
         .expect("error while running Atlas Platform");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::work_step_adapter;
+
+    #[test]
+    fn work_step_adapter_accepts_supported_providers() {
+        assert_eq!(
+            work_step_adapter("openai").unwrap(),
+            "THE WORKSHOPS/platform/openai_work_step.py"
+        );
+        assert_eq!(
+            work_step_adapter("anthropic").unwrap(),
+            "THE WORKSHOPS/platform/anthropic_work_step.py"
+        );
+    }
+
+    #[test]
+    fn work_step_adapter_rejects_unknown_provider() {
+        assert_eq!(
+            work_step_adapter("unknown").unwrap_err(),
+            "Unbekannter WorkStep-Provider: unknown"
+        );
+    }
 }

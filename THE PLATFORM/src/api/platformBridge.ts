@@ -17,6 +17,8 @@ interface PublishWorkStepResult {
   path: string;
 }
 
+export type WorkStepProvider = "openai" | "anthropic";
+
 export async function createWorkItem(intent: string, createdBy: string): Promise<WorkItem> {
   const result = await invoke<CreateWorkItemResult>("create_work_item", {
     intent,
@@ -52,4 +54,14 @@ export async function publishWorkStep(
 
 export async function getWorkSteps(workItemId: string): Promise<WorkStep[]> {
   return invoke<WorkStep[]>("get_work_steps", { workItemId });
+}
+
+export async function generateWorkStep(
+  provider: WorkStepProvider,
+  workItemId: string,
+): Promise<PublishWorkStepResult> {
+  return invoke<PublishWorkStepResult>("generate_work_step", {
+    provider,
+    workItemId,
+  });
 }

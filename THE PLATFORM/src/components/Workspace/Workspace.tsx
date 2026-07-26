@@ -11,9 +11,11 @@ import { realArtifacts } from "../../api/artifacts";
 import { realActivityEvents } from "../../api/activity";
 import {
   createWorkItem,
+  generateWorkStep,
   getWorkSteps,
   publishWorkStep,
 } from "../../api/platformBridge";
+import type { WorkStepProvider } from "../../api/platformBridge";
 import type { PlatformObjectId, WorkItem, WorkStep } from "../../types/platform";
 
 // Workspace: die zentrale Koordinationskomponente (siehe
@@ -62,6 +64,8 @@ export function Workspace() {
   const [newWorkItems, setNewWorkItems] = useState<WorkItem[]>([]);
   const [workSteps, setWorkSteps] = useState<WorkStep[]>([]);
   const [workStepsError, setWorkStepsError] = useState<string | null>(null);
+  const [workStepProvider, setWorkStepProvider] =
+    useState<WorkStepProvider>("openai");
   const allWorkItems = [...realWorkItems, ...newWorkItems];
   const selection = resolveSelection(selectedId, newWorkItems);
 
@@ -127,6 +131,21 @@ export function Workspace() {
     }
   }
 
+  async function handleGenerateWorkStep() {
+    if (!selectedId || !selectedId.startsWith("WI-")) {
+      window.alert("Bitte zuerst ein Work Item auswaehlen.");
+      return;
+    }
+
+    try {
+      const result = await generateWorkStep(workStepProvider, selectedId);
+      await refreshWorkSteps(selectedId);
+      window.alert(`Modell-Zwischenstand ${result.id} wurde erzeugt.`);
+    } catch (err) {
+      window.alert(`Modell konnte keinen Zwischenstand erzeugen: ${err}`);
+    }
+  }
+
   return (
     <div className="workspace-shell">
       <div className="workspace-main">
@@ -145,6 +164,23 @@ export function Workspace() {
           <button type="button" onClick={handlePublishWorkStep}>
             Zwischenstand veroeffentlichen
           </button>
+
+          <div>
+            <label htmlFor="work-step-provider">Modell:</label>{" "}
+            <select
+              id="work-step-provider"
+              value={workStepProvider}
+              onChange={(event) =>
+                setWorkStepProvider(event.target.value as WorkStepProvider)
+              }
+            >
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Claude</option>
+            </select>{" "}
+            <button type="button" onClick={handleGenerateWorkStep}>
+              Modell arbeiten lassen
+            </button>
+          </div>
 
           <section aria-label="WorkSteps">
             <h2>Zwischenstaende</h2>
