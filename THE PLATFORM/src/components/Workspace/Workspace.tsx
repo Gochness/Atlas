@@ -244,54 +244,87 @@ export function Workspace() {
         </aside>
 
         <main className="workspace-content">
-          <button type="button" onClick={() => void refreshWorkItems()}>
-            Work Items aktualisieren
-          </button>
-          {workItemsError ? (
-            <p>Work Items konnten nicht geladen werden: {workItemsError}</p>
-          ) : null}
-
-          <button type="button" onClick={handlePublishWorkStep}>
-            Zwischenstand veroeffentlichen
-          </button>
-
-          <div>
-            <label htmlFor="work-step-provider">Modell:</label>{" "}
-            <select
-              id="work-step-provider"
-              value={workStepProvider}
-              onChange={(event) =>
-                setWorkStepProvider(event.target.value as WorkStepProvider)
-              }
-            >
-              <option value="openai">OpenAI</option>
-              <option value="anthropic">Claude</option>
-              <option value="gemini">Gemini</option>
-            </select>{" "}
-            <button type="button" onClick={handleGenerateWorkStep}>
-              Modell arbeiten lassen
-            </button>
-          </div>
+          {selectedWorkItem ? (
+            <header className="workspace-focus">
+              <p className="workspace-focus-label">Ausgewähltes Work Item</p>
+              <div className="workspace-focus-heading">
+                <h1>{selectedWorkItem.intent}</h1>
+                <span className="workspace-focus-id">{selectedWorkItem.id}</span>
+              </div>
+              <p className="workspace-focus-meta">
+                Status: {selectedWorkItem.status}
+              </p>
+            </header>
+          ) : (
+            <header className="workspace-focus workspace-focus-empty">
+              <p className="workspace-focus-label">Atlas-Arbeitsraum</p>
+              <h1>Work Item auswählen</h1>
+              <p>Wähle links ein Work Item aus, um die gemeinsame Arbeit zu öffnen.</p>
+            </header>
+          )}
 
           {selectedWorkItem ? (
             <Arbeitslage workItem={selectedWorkItem} workSteps={workSteps} />
           ) : null}
 
-          <section aria-label="WorkSteps">
-            <h2>Zwischenstaende</h2>
+          <div className="workspace-toolbar" aria-label="Werkzeugleiste">
+            <div className="workspace-toolbar-group">
+              <button type="button" onClick={() => void refreshWorkItems()}>
+                Work Items aktualisieren
+              </button>
+              <button type="button" onClick={handlePublishWorkStep}>
+                Zwischenstand veröffentlichen
+              </button>
+            </div>
+
+            <div className="workspace-toolbar-group workspace-model-controls">
+              <label htmlFor="work-step-provider">Modell</label>
+              <select
+                id="work-step-provider"
+                value={workStepProvider}
+                onChange={(event) =>
+                  setWorkStepProvider(event.target.value as WorkStepProvider)
+                }
+              >
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Claude</option>
+                <option value="gemini">Gemini</option>
+              </select>
+              <button type="button" onClick={handleGenerateWorkStep}>
+                Modell arbeiten lassen
+              </button>
+            </div>
+          </div>
+          {workItemsError ? (
+            <p className="workspace-error">
+              Work Items konnten nicht geladen werden: {workItemsError}
+            </p>
+          ) : null}
+
+          <section className="shared-work" aria-label="WorkSteps">
+            <div className="shared-work-heading">
+              <div>
+                <p className="shared-work-kicker">WorkSteps</p>
+                <h2>Gemeinsame Arbeit</h2>
+              </div>
+              <span>{workSteps.length} Beiträge</span>
+            </div>
             {workStepsError ? (
-              <p>Zwischenstaende konnten nicht geladen werden: {workStepsError}</p>
+              <p className="workspace-error">
+                Zwischenstände konnten nicht geladen werden: {workStepsError}
+              </p>
             ) : workSteps.length === 0 ? (
-              <p>Keine Zwischenstaende vorhanden.</p>
+              <p className="shared-work-empty">Keine Zwischenstände vorhanden.</p>
             ) : (
-              <ul>
+              <ul className="work-step-list">
                 {workSteps.map((workStep) => (
-                  <li key={workStep.id}>
-                    <strong>{workStep.participantId}</strong>: {workStep.content}
-                    <small>
-                      {" "}
-                      ({workStep.id}, {workStep.createdAt})
-                    </small>
+                  <li className="work-step-card" key={workStep.id}>
+                    <div className="work-step-meta">
+                      <strong>{workStep.participantId}</strong>
+                      <span>{workStep.id}</span>
+                      <time>{workStep.createdAt}</time>
+                    </div>
+                    <p>{workStep.content}</p>
                   </li>
                 ))}
               </ul>
