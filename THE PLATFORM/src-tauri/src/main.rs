@@ -31,6 +31,8 @@ struct WorkItem {
     created_at: String,
     base_commit: String,
     status: String,
+    #[serde(default)]
+    context_refs: Vec<String>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -60,10 +62,7 @@ fn repo_root() -> PathBuf {
 fn atlas_python_at(repo_root: &Path) -> Result<PathBuf, String> {
     let python = repo_root.join(".venv").join("Scripts").join("python.exe");
     if !python.is_file() {
-        return Err(format!(
-            "Atlas-Python nicht gefunden: {}",
-            python.display()
-        ));
+        return Err(format!("Atlas-Python nicht gefunden: {}", python.display()));
     }
     Ok(python)
 }
@@ -135,8 +134,53 @@ fn get_work_items() -> Result<Vec<WorkItem>, String> {
         });
     }
 
-    serde_json::from_str(&stdout)
-        .map_err(|e| format!("Unerwartete Ausgabe von work_item.py: {e}"))
+    serde_json::from_str(&stdout).map_err(|e| format!("Unerwartete Ausgabe von work_item.py: {e}"))
+}
+
+#[tauri::command]
+fn set_work_item_context_refs(
+    work_item_id: String,
+    context_refs: Vec<String>,
+) -> Result<CreateWorkItemResult, String> {
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let context_refs_json = serde_json::to_string(&context_refs)
+        .map_err(|e| format!("context_refs konnten nicht serialisiert werden: {e}"))?;
+    let output = Command::new(python)
+        .arg("THE WORKSHOPS/platform/work_item.py")
+        .arg("set-context-refs")
+        .arg(&work_item_id)
+        .arg(context_refs_json)
+        .current_dir(repo_root)
+        .output()
+        .map_err(|e| format!("work_item.py konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if !output.status.success() {
+        return Err(if !stdout.is_empty() {
+            stdout
+        } else if !stderr.is_empty() {
+            stderr
+        } else {
+            "work_item.py ist fehlgeschlagen (kein Ausgabetext)".to_string()
+        });
+    }
+
+    let rest = stdout
+        .strip_prefix("OK")
+        .ok_or_else(|| format!("Unerwartete Ausgabe von work_item.py: {stdout}"))?;
+    let parts: Vec<&str> = rest.split_whitespace().collect();
+    if parts.len() < 3 {
+        return Err(format!("Unerwartete Ausgabe von work_item.py: {stdout}"));
+    }
+
+    Ok(CreateWorkItemResult {
+        id: parts[0].to_string(),
+        status: parts[1].to_string(),
+        path: parts[2..].join(" "),
+    })
 }
 
 #[tauri::command]
@@ -266,8 +310,7 @@ fn get_work_steps(work_item_id: String) -> Result<Vec<WorkStep>, String> {
         });
     }
 
-    serde_json::from_str(&stdout)
-        .map_err(|e| format!("Unerwartete Ausgabe von work_step.py: {e}"))
+    serde_json::from_str(&stdout).map_err(|e| format!("Unerwartete Ausgabe von work_step.py: {e}"))
 }
 
 fn main() {
@@ -275,6 +318,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             create_work_item,
             get_work_items,
+            set_work_item_context_refs,
             publish_work_step,
             generate_work_step,
             get_work_steps

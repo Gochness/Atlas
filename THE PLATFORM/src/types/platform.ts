@@ -8,6 +8,7 @@ export interface WorkItem {
   intent: string;
   createdBy: string;
   status: WorkItemStatus;
+  contextRefs: string[];
 }
 
 // Sichtbarer Zwischenstand waehrend der Bearbeitung eines Work Items.

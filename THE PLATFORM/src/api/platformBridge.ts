@@ -29,11 +29,19 @@ export async function createWorkItem(intent: string, createdBy: string): Promise
     intent,
     createdBy,
     status: result.status as WorkItemStatus,
+    contextRefs: [],
   };
 }
 
 export async function getWorkItems(): Promise<WorkItem[]> {
   return invoke<WorkItem[]>("get_work_items");
+}
+
+export async function setWorkItemContextRefs(
+  workItemId: string,
+  contextRefs: string[],
+): Promise<void> {
+  await invoke("set_work_item_context_refs", { workItemId, contextRefs });
 }
 
 export async function publishWorkStep(

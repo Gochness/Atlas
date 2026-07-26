@@ -4,6 +4,7 @@ import type {
   ArtifactContext,
   ContextInspectorSelection,
   SubmissionContext,
+  WorkItem,
   WorkItemContext,
   WorkspaceContext,
 } from "../../types/platform";
@@ -25,16 +26,25 @@ import type {
 // dabei nicht veraendert, nur derselbe Typ wiederverwendet.
 export interface ObjectEditorProps {
   selection: ContextInspectorSelection;
+  onEditWorkItemContextRefs?: (workItem: WorkItem) => void;
 }
 
-export function ObjectEditor({ selection }: ObjectEditorProps) {
+export function ObjectEditor({
+  selection,
+  onEditWorkItemContextRefs,
+}: ObjectEditorProps) {
   switch (selection.kind) {
     case "none":
       return <p className="empty-state">Kein Objekt ausgewählt.</p>;
     case "workspace":
       return <WorkspaceView data={selection.data} />;
     case "workItem":
-      return <WorkItemView data={selection.data} />;
+      return (
+        <WorkItemView
+          data={selection.data}
+          onEditContextRefs={onEditWorkItemContextRefs}
+        />
+      );
     case "submission":
       return <SubmissionView data={selection.data} />;
     case "artifact":
@@ -68,13 +78,22 @@ function ListOrNone({ items }: { items: string[] }) {
   );
 }
 
-function WorkItemView({ data }: { data: WorkItemContext }) {
+function WorkItemView({
+  data,
+  onEditContextRefs,
+}: {
+  data: WorkItemContext;
+  onEditContextRefs?: (workItem: WorkItem) => void;
+}) {
   return (
     <article>
       <ObjectHeader title={data.workItem.intent} id={data.workItem.id} />
       <dl className="object-editor-fields">
         <EditorField label="Status">{data.workItem.status}</EditorField>
         <EditorField label="Erstellt von">{data.workItem.createdBy}</EditorField>
+        <EditorField label="Kontextdateien">
+          <ListOrNone items={data.workItem.contextRefs} />
+        </EditorField>
         <EditorField label="Verknüpfte Submissions">
           <ListOrNone items={data.linkedSubmissions} />
         </EditorField>
@@ -82,6 +101,14 @@ function WorkItemView({ data }: { data: WorkItemContext }) {
           <ListOrNone items={data.affectedArtifacts} />
         </EditorField>
       </dl>
+      {data.workItem.status === "open" && onEditContextRefs ? (
+        <button
+          type="button"
+          onClick={() => onEditContextRefs(data.workItem)}
+        >
+          Kontextdateien bearbeiten
+        </button>
+      ) : null}
     </article>
   );
 }

@@ -9,11 +9,12 @@ Repository rekonstruierbar).
 Befehle:
     python work_item.py start --by <id> "<intent>"
     python work_item.py list
+    python work_item.py set-context-refs WI-XXXX '["path/to/file"]'
     python work_item.py complete WI-XXXX
     python work_item.py abandon WI-XXXX
 
 Format pro Datei:
-    id, intent, created_by, created_at, base_commit, status
+    id, intent, created_by, created_at, base_commit, status, context_refs
 
 Alle Felder ausser intent und created_by werden vom System ergaenzt.
 
@@ -33,6 +34,7 @@ from pathlib import Path
 from typing import Optional
 
 WORK_ITEMS_DIR = Path("THE VAULT/work_items")
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 WI_REF_RE = re.compile(r"^WI-(\d{4})$")
 
@@ -93,6 +95,89 @@ def _save(data: dict, path: Path) -> None:
         yaml.dump(data, f, allow_unicode=True, sort_keys=False)
 
 
+def _is_sensitive_path(relative_path: Path) -> bool:
+    parts = {part.casefold() for part in relative_path.parts}
+    if ".git" in parts or ".venv" in parts:
+        return True
+    if any(
+        marker in part
+        for part in parts
+        for marker in ("credential", "secret")
+    ):
+        return True
+
+    name = relative_path.name.casefold()
+    if name == ".env" or name.startswith(".env."):
+        return True
+    if relative_path.suffix.casefold() in {".key", ".pem"}:
+        return True
+    return False
+
+
+def read_context_files(
+    context_refs: object,
+    repo_root: Path = REPO_ROOT,
+) -> list[dict]:
+    if context_refs is None:
+        context_refs = []
+    if not isinstance(context_refs, list):
+        raise ValueError("context_refs muss eine Liste sein")
+
+    root = repo_root.resolve()
+    context_files = []
+    seen: set[str] = set()
+
+    for value in context_refs:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError("context_ref muss ein nicht leerer Pfad sein")
+
+        reference = Path(value.strip())
+        if reference.is_absolute():
+            raise ValueError(f"Absolute context_ref ist nicht erlaubt: {value}")
+
+        try:
+            path = (root / reference).resolve(strict=True)
+            relative_path = path.relative_to(root)
+        except FileNotFoundError as error:
+            raise ValueError(f"context_ref nicht gefunden: {value}") from error
+        except (OSError, ValueError) as error:
+            raise ValueError(
+                f"context_ref liegt ausserhalb des Atlas-Repositories: {value}"
+            ) from error
+
+        if _is_sensitive_path(relative_path):
+            raise ValueError(f"Gesperrte context_ref: {value}")
+        if not path.is_file():
+            raise ValueError(f"context_ref ist keine Datei: {value}")
+
+        canonical_ref = relative_path.as_posix()
+        if canonical_ref in seen:
+            continue
+
+        try:
+            content = path.read_text(encoding="utf-8-sig")
+        except (OSError, UnicodeError) as error:
+            raise ValueError(
+                f"context_ref ist keine lesbare UTF-8-Textdatei: {value}"
+            ) from error
+        if "\x00" in content:
+            raise ValueError(
+                f"context_ref ist keine lesbare UTF-8-Textdatei: {value}"
+            )
+
+        seen.add(canonical_ref)
+        context_files.append({"path": canonical_ref, "content": content})
+
+    return context_files
+
+
+def validate_context_refs(
+    context_refs: object,
+    repo_root: Path = REPO_ROOT,
+) -> list[str]:
+    return [item["path"] for item in read_context_files(context_refs, repo_root)]
+
+
 # ---------------------------------------------------------------------------
 # Kernfunktionen
 # ---------------------------------------------------------------------------
@@ -112,6 +197,7 @@ def start(intent: str, created_by: str, work_items_dir: Path = WORK_ITEMS_DIR) -
         "created_at":  datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "base_commit": _head_sha(),
         "status":      STATUS_OPEN,
+        "context_refs": [],
     }
     path = _path_for(wi_id, work_items_dir)
     _save(data, path)
@@ -127,8 +213,40 @@ def list_work_items(work_items_dir: Path = WORK_ITEMS_DIR) -> list[dict]:
         with open(path, encoding="utf-8-sig") as f:
             data = yaml.safe_load(f)
         if isinstance(data, dict):
-            work_items.append(data)
+            normalized = dict(data)
+            normalized.setdefault("context_refs", [])
+            work_items.append(normalized)
     return work_items
+
+
+def set_context_refs(
+    wi_id: str,
+    context_refs: object,
+    work_items_dir: Path = WORK_ITEMS_DIR,
+    repo_root: Path = REPO_ROOT,
+) -> WorkItemResult:
+    data = _load(wi_id, work_items_dir)
+    if data is None:
+        return WorkItemResult(success=False, id=wi_id, error=f"Work Item nicht gefunden: {wi_id}")
+
+    current = data.get("status")
+    if current != STATUS_OPEN:
+        return WorkItemResult(
+            success=False,
+            id=wi_id,
+            status=current,
+            error=f"Work Item {wi_id} ist nicht offen (status={current})",
+        )
+
+    try:
+        validated_refs = validate_context_refs(context_refs, repo_root)
+    except ValueError as error:
+        return WorkItemResult(success=False, id=wi_id, status=current, error=str(error))
+
+    data["context_refs"] = validated_refs
+    path = _path_for(wi_id, work_items_dir)
+    _save(data, path)
+    return WorkItemResult(success=True, id=wi_id, path=str(path), status=current)
 
 
 def _transition(wi_id: str, new_status: str, work_items_dir: Path) -> WorkItemResult:
@@ -198,6 +316,22 @@ def main():
             sys.exit(1)
         print(json.dumps(list_work_items(), ensure_ascii=False))
         sys.exit(0)
+
+    elif cmd == "set-context-refs":
+        if len(args) != 3:
+            print(
+                "Verwendung: python work_item.py set-context-refs "
+                "WI-XXXX '[\"path/to/file\"]'"
+            )
+            sys.exit(1)
+        try:
+            context_refs = json.loads(args[2])
+        except json.JSONDecodeError:
+            print("FEHLER: context_refs ist kein gueltiges JSON")
+            sys.exit(1)
+        result = set_context_refs(args[1], context_refs)
+        _print_result(result)
+        sys.exit(0 if result.success else 1)
 
     elif cmd == "complete":
         if len(args) != 2:

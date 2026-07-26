@@ -14,6 +14,7 @@ import {
   getWorkItems,
   getWorkSteps,
   publishWorkStep,
+  setWorkItemContextRefs,
 } from "../../api/platformBridge";
 import type { WorkStepProvider } from "../../api/platformBridge";
 import type { PlatformObjectId, WorkItem, WorkStep } from "../../types/platform";
@@ -142,6 +143,26 @@ export function Workspace() {
     }
   }
 
+  async function handleEditWorkItemContextRefs(workItem: WorkItem) {
+    const input = window.prompt(
+      "Repository-relative Kontextdateien (eine pro Zeile):",
+      workItem.contextRefs.join("\n"),
+    );
+    if (input === null) return;
+
+    const contextRefs = input
+      .split(/\r?\n/)
+      .map((reference) => reference.trim())
+      .filter(Boolean);
+
+    try {
+      await setWorkItemContextRefs(workItem.id, contextRefs);
+      await refreshWorkItems();
+    } catch (err) {
+      window.alert(`Kontextdateien konnten nicht gespeichert werden: ${err}`);
+    }
+  }
+
   async function handleGenerateWorkStep() {
     if (!selectedId || !selectedId.startsWith("WI-")) {
       window.alert("Bitte zuerst ein Work Item auswaehlen.");
@@ -221,7 +242,12 @@ export function Workspace() {
             )}
           </section>
 
-          <ObjectEditor selection={selection} />
+          <ObjectEditor
+            selection={selection}
+            onEditWorkItemContextRefs={(workItem) =>
+              void handleEditWorkItemContextRefs(workItem)
+            }
+          />
         </main>
 
         <aside className="context-inspector" aria-label="Context Inspector">
