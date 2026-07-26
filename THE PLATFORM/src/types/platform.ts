@@ -10,6 +10,17 @@ export interface WorkItem {
   status: WorkItemStatus;
 }
 
+// Sichtbarer Zwischenstand waehrend der Bearbeitung eines Work Items.
+// Dient als kleinste Grundlage fuer sichtbare laufende Arbeit und
+// erkennbare Zuordnung zu einem Teilnehmer.
+export interface WorkStep {
+  id: string;
+  workItemId: string;
+  participantId: string;
+  content: string;
+  createdAt: string; // ISO 8601
+}
+
 export type SubmissionStatus = "eingereicht" | "gemergt" | "materialisiert" | "abgelehnt";
 
 export interface Submission {
