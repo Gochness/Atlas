@@ -1,0 +1,37 @@
+id: WS-0052
+work_item_id: WI-0018
+participant_id: human:enes
+content: 'Technischer Abschluss von WI-0018
+
+
+  Bestätigt:
+
+  - Vollständig strukturierte Submission-Daten können über submission_adapter.submit_structured()
+  als temporäre YAML an den bestehenden dateibasierten submission_service.submit(yaml_path)-Pfad
+  übergeben werden.
+
+  - Der produktive Anschluss besteht über submit_structured.py, den Tauri-Command
+  submit_structured und platformBridge.submitStructured().
+
+  - Ein kontrollierter Test in der laufenden Tauri-App hat den echten Pfad platformBridge.submitStructured()
+  → Tauri invoke("submit_structured") → Rust → Python-CLI → submission_adapter.submit_structured()
+  und die Rückgabe bis ins Frontend bestätigt.
+
+  - Der kontrollierte Adapter-Stub kehrte vor submission_service.submit() zurück.
+  Es wurden keine echte Submission, kein Push, kein Pull Request und kein dauerhaftes
+  Submission-Artefakt erzeugt.
+
+  - Sämtliche temporären Teständerungen und der flüchtige WebView-Testmarker wurden
+  anschließend entfernt; der bekannte Working-Tree-Zustand blieb erhalten.
+
+
+  Epistemisch offen:
+
+  - Die Bedeutung und Herleitung von base_commit für innerhalb der Plattform erzeugte
+  Submission-Daten ist durch diese Implementierung und diesen Test nicht geklärt.
+  Dazu wird hier keine neue Regel behauptet.
+
+
+  Damit ist der für WI-0018 untersuchte und gebaute interne technische Übergang bestätigt.
+  Es wurde keine darüber hinausgehende Submission-Architektur oder Folgearbeit beschlossen.'
+created_at: '2026-07-26T22:14:05Z'

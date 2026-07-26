@@ -1,6 +1,6 @@
-timestamp: 2026-07-26T20:52:01Z
+timestamp: 2026-07-26T22:14:55Z
 active: codex
-head: 324024b4385eb5e45b1254f48e1c646939ee6845
-focus: WI-0018 - kleinsten internen Authoring-Uebergang zu dem vorhandenen dateibasierten Submission-Pfad untersuchen; keine neue Submission-Architektur beschlossen
-next: gemaess WS-0051 genau eine offene Regel bestimmen, die vor dem ersten vollstaendigen gueltigen Submission-Kandidaten geklaert werden muss; Belegtes, Erstversuchsblocker und spaeter offene Punkte trennen; noch nichts implementieren
-status: in_progress
+head: 6a37550b871b48336d326c846ec5a92b5a4072e6
+focus: WI-0018 technisch abgeschlossen; kontrollierter IPC-Pfad bis zum Submission-Adapter bestaetigt
+next: keine Folgearbeit beschlossen; epistemische Bedeutung und Herleitung von base_commit bleiben offen
+status: completed

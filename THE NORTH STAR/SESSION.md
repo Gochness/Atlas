@@ -635,3 +635,34 @@ vorhandenen dateibasierten Submission-Pfad übergeben kann. Dabei trennen,
 was bereits belegt oder implementiert ist, was den ersten Versuch tatsächlich
 blockiert und was erst später geklärt werden muss. Noch nichts
 implementieren und keine neue Architektur entwerfen.
+
+------------------------------------------------------------------------
+
+## 2026-07-27 – WI-0018 technisch abgeschlossen
+
+`WI-0018` ist mit `WS-0052` dokumentiert und hat den Status `completed`.
+
+Bestätigt:
+
+- Vollständig strukturierte Submission-Daten können über
+  `submission_adapter.submit_structured()` als temporäre YAML an den
+  vorhandenen dateibasierten `submission_service.submit(yaml_path)`-Pfad
+  übergeben werden.
+- Der Plattformanschluss besteht über `submit_structured.py`, den
+  Tauri-Command `submit_structured` und
+  `platformBridge.submitStructured()`.
+- Ein kontrollierter Test in der laufenden Tauri-App bestätigte den echten
+  IPC-Pfad vom Bridge-Aufruf über Rust und Python-CLI bis zum Adapter sowie
+  die Rückgabe ins Frontend.
+- Der Test wurde vor `submission_service.submit()` gestubbt. Es entstanden
+  keine echte Submission, kein Push, kein Pull Request und kein dauerhaftes
+  Submission-Artefakt.
+- Die temporären Teständerungen und der flüchtige WebView-Testmarker wurden
+  vollständig entfernt.
+
+Epistemisch offen bleibt die Bedeutung und Herleitung von `base_commit` für
+innerhalb der Plattform erzeugte Submission-Daten. Durch den technischen
+Abschluss von `WI-0018` wird hierzu keine neue Regel festgelegt.
+
+Es wurde keine darüber hinausgehende Submission-Architektur oder Folgearbeit
+beschlossen.

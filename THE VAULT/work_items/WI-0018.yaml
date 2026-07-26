@@ -1,0 +1,13 @@
+id: WI-0018
+intent: Untersuche den aktuellen Stand der Atlas-Plattform und bestimme, welche konkrete
+  Funktion als Nächstes fehlt, damit Mensch, GPT-5 und Claude innerhalb der Plattform
+  gemeinsam an Atlas weiterarbeiten können, ohne für den normalen Arbeitsprozess auf
+  externe Entwicklungswerkzeuge oder manuelles Copy/Paste angewiesen zu sein. Trenne
+  belegte Beobachtungen, Schlussfolgerungen und Vorschläge.
+created_by: ENES
+created_at: '2026-07-26T18:41:02Z'
+base_commit: 96aa7aa1c387313a7d9119a29d322f1cbcffe6ce
+status: completed
+context_refs:
+- THE NORTH STAR/PLATFORM_API_v1.md
+- THE WORKSHOPS/platform/materialization_service.py
