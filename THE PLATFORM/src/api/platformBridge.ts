@@ -17,6 +17,11 @@ interface PublishWorkStepResult {
   path: string;
 }
 
+export interface SubmitStructuredResult {
+  submissionId: string;
+  pullRequestUrl: string;
+}
+
 export type WorkStepProvider = "openai" | "anthropic";
 
 export async function createWorkItem(intent: string, createdBy: string): Promise<WorkItem> {
@@ -46,6 +51,12 @@ export async function setWorkItemContextRefs(
   contextRefs: string[],
 ): Promise<void> {
   await invoke("set_work_item_context_refs", { workItemId, contextRefs });
+}
+
+export async function submitStructured(
+  data: Record<string, unknown>,
+): Promise<SubmitStructuredResult> {
+  return invoke<SubmitStructuredResult>("submit_structured", { data });
 }
 
 export async function publishWorkStep(
