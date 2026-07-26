@@ -72,6 +72,9 @@ export function Workspace() {
   const [repositoryFileError, setRepositoryFileError] = useState<string | null>(
     null,
   );
+  const [contextRefsEditorWorkItemId, setContextRefsEditorWorkItemId] =
+    useState<string | null>(null);
+  const [contextRefsDraft, setContextRefsDraft] = useState("");
   const [workStepProvider, setWorkStepProvider] =
     useState<WorkStepProvider>("openai");
   const selection = resolveSelection(selectedId, workItems);
@@ -151,24 +154,32 @@ export function Workspace() {
     }
   }
 
-  async function handleEditWorkItemContextRefs(workItem: WorkItem) {
-    const input = window.prompt(
-      "Repository-relative Kontextdateien (eine pro Zeile):",
-      workItem.contextRefs.join("\n"),
-    );
-    if (input === null) return;
+  function handleEditWorkItemContextRefs(workItem: WorkItem) {
+    setContextRefsEditorWorkItemId(workItem.id);
+    setContextRefsDraft(workItem.contextRefs.join("\n"));
+  }
 
-    const contextRefs = input
+  async function handleSaveWorkItemContextRefs() {
+    if (!contextRefsEditorWorkItemId) return;
+
+    const contextRefs = contextRefsDraft
       .split(/\r?\n/)
       .map((reference) => reference.trim())
       .filter(Boolean);
 
     try {
-      await setWorkItemContextRefs(workItem.id, contextRefs);
+      await setWorkItemContextRefs(contextRefsEditorWorkItemId, contextRefs);
       await refreshWorkItems();
+      setContextRefsEditorWorkItemId(null);
+      setContextRefsDraft("");
     } catch (err) {
       window.alert(`Kontextdateien konnten nicht gespeichert werden: ${err}`);
     }
+  }
+
+  function handleCancelWorkItemContextRefs() {
+    setContextRefsEditorWorkItemId(null);
+    setContextRefsDraft("");
   }
 
   async function handleGenerateWorkStep() {
@@ -298,11 +309,37 @@ export function Workspace() {
             </section>
           ) : null}
 
+          {contextRefsEditorWorkItemId ? (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void handleSaveWorkItemContextRefs();
+              }}
+            >
+              <label htmlFor="work-item-context-refs">
+                Repository-relative Kontextdateien (eine pro Zeile):
+              </label>
+              <br />
+              <textarea
+                id="work-item-context-refs"
+                rows={6}
+                value={contextRefsDraft}
+                onChange={(event) => setContextRefsDraft(event.target.value)}
+              />
+              <br />
+              <button type="submit">Speichern</button>{" "}
+              <button
+                type="button"
+                onClick={handleCancelWorkItemContextRefs}
+              >
+                Abbrechen
+              </button>
+            </form>
+          ) : null}
+
           <ObjectEditor
             selection={selection}
-            onEditWorkItemContextRefs={(workItem) =>
-              void handleEditWorkItemContextRefs(workItem)
-            }
+            onEditWorkItemContextRefs={handleEditWorkItemContextRefs}
           />
         </main>
 
