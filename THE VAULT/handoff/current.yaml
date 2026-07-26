@@ -1,6 +1,6 @@
-timestamp: 2026-07-25T17:27:07Z
-active: claude-code
-head: aab09c84206492c67a8e6164eed1624f001aed80
-focus: THE PLATFORM/ (React+TS+Vite+Tauri) - Workspace, ObjectExplorer, ActivityStream implementiert und verifiziert, Atmosphaeren-Pass gemergt (PR #15-18)
-next: Context Inspector implementieren; ObjectExplorer auf echte Mock-Daten umstellen; Tauri-Python-Bruecke v0.1 bauen; S-0011/ART-0009-Ueberarbeitung weiterhin ungeklaert
+timestamp: 2026-07-26T20:52:01Z
+active: codex
+head: 324024b4385eb5e45b1254f48e1c646939ee6845
+focus: WI-0018 - kleinsten internen Authoring-Uebergang zu dem vorhandenen dateibasierten Submission-Pfad untersuchen; keine neue Submission-Architektur beschlossen
+next: gemaess WS-0051 genau eine offene Regel bestimmen, die vor dem ersten vollstaendigen gueltigen Submission-Kandidaten geklaert werden muss; Belegtes, Erstversuchsblocker und spaeter offene Punkte trennen; noch nichts implementieren
 status: in_progress

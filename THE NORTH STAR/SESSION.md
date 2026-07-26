@@ -595,3 +595,43 @@ dieser Stelle.
 
 Noch nicht Chronicle: Beide Kandidaten sind als Submission vorgesehen,
 aber noch nicht eingereicht. Kein Urteil vorweggenommen.
+
+------------------------------------------------------------------------
+
+## 2026-07-26 – Übergabestand
+
+Repository-Stand:
+
+- Branch: `master`
+- HEAD: `324024b4385eb5e45b1254f48e1c646939ee6845`
+
+Bestätigte aktuelle Plattform-Meilensteine:
+
+- M3: explizite Kontextdateien für Modell-WorkSteps
+  (`96aa7aa Add explicit context files to model WorkSteps`)
+- M4: sichere Auflösung exakter Repository-Dateinamen
+  (`c8470ba Add secure repository filename lookup`)
+- Mehrzeiliger Editor für mehrere `context_refs`
+  (`324024b Add multiline context reference editor`)
+
+Aktiver Arbeitsfall ist `WI-0018` mit Status `open`.
+Seine aktuellen Kontextreferenzen sind:
+
+- `THE NORTH STAR/PLATFORM_API_v1.md`
+- `THE WORKSHOPS/platform/materialization_service.py`
+
+Für `WI-0018` liegen die WorkSteps `WS-0045` bis einschließlich `WS-0051`
+vor. Untersucht wird der kleinste interne Authoring-Übergang zu dem bereits
+vorhandenen dateibasierten Submission-Pfad. Es wurde keine neue
+Submission-Architektur und keine payload-basierte Submission-API
+beschlossen.
+
+Nächster Schritt gemäß `WS-0051`:
+
+Aus dem belegten Stand genau eine offene Regel bestimmen, die zuerst geklärt
+werden muss, damit Atlas innerhalb der Plattform erstmals einen
+vollständigen, gültigen Submission-Kandidaten erzeugen und an den
+vorhandenen dateibasierten Submission-Pfad übergeben kann. Dabei trennen,
+was bereits belegt oder implementiert ist, was den ersten Versuch tatsächlich
+blockiert und was erst später geklärt werden muss. Noch nichts
+implementieren und keine neue Architektur entwerfen.
