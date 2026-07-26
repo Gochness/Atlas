@@ -8,7 +8,10 @@ import { Arbeitslage } from "../Arbeitslage";
 import { resolveSelection } from "../../api/mockData";
 import { realSubmissions } from "../../api/submissions";
 import { realArtifacts } from "../../api/artifacts";
-import { realActivityEvents } from "../../api/activity";
+import {
+  realActivityEvents,
+  workStepActivityEvents,
+} from "../../api/activity";
 import {
   createWorkItem,
   generateWorkStep,
@@ -84,6 +87,10 @@ export function Workspace() {
   const [workStepProvider, setWorkStepProvider] =
     useState<WorkStepProvider>("openai");
   const selection = resolveSelection(selectedId, workItems);
+  const activityEvents = [
+    ...realActivityEvents,
+    ...workStepActivityEvents(workSteps),
+  ].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
   const selectedWorkItem = workItems.find((w) => w.id === selectedId) ?? null;
 
   async function refreshWorkItems() {
@@ -364,7 +371,7 @@ export function Workspace() {
       <footer className="activity-stream" aria-label="Activity Stream">
         <p className="placeholder-label">Activity Stream</p>
         <ActivityStream
-          events={realActivityEvents}
+          events={activityEvents}
           onSelect={(objectId) =>
             console.log("Activity Stream: Platzhalter-Klick auf", objectId)
           }

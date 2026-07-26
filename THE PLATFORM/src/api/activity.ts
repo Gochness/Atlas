@@ -1,4 +1,4 @@
-import type { ActivityEvent } from "../types/platform";
+import type { ActivityEvent, WorkStep } from "../types/platform";
 
 // Baut Activity-Stream-Ereignisse ausschliesslich aus Feldern, die in
 // denselben Repository-Dateien bereits vorhanden sind, die auch von
@@ -81,3 +81,18 @@ for (const content of Object.values(artifactFiles)) {
 export const realActivityEvents: ActivityEvent[] = events.sort((a, b) =>
   b.timestamp.localeCompare(a.timestamp),
 );
+
+// Reine Projektion aus den bereits zur Laufzeit geladenen WorkSteps.
+// Keine Interpretation des Inhalts oder des Arbeitsstatus: Ein WorkStep
+// belegt nur, dass dieser Teilnehmer ihn zu diesem Zeitpunkt fuer dieses
+// Work Item veroeffentlicht hat.
+export function workStepActivityEvents(workSteps: WorkStep[]): ActivityEvent[] {
+  return workSteps.map((workStep) => ({
+    id: `${workStep.id}-published`,
+    timestamp: workStep.createdAt,
+    label:
+      `WorkStep ${workStep.id} veröffentlicht ` +
+      `(${workStep.participantId}) · ${workStep.workItemId}`,
+    objectId: workStep.workItemId,
+  }));
+}
