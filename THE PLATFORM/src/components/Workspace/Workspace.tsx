@@ -5,13 +5,13 @@ import { ActivityStream } from "../ActivityStream";
 import { ContextInspector } from "../ContextInspector";
 import { ObjectEditor } from "../ObjectEditor";
 import { resolveSelection } from "../../api/mockData";
-import { realWorkItems } from "../../api/workItems";
 import { realSubmissions } from "../../api/submissions";
 import { realArtifacts } from "../../api/artifacts";
 import { realActivityEvents } from "../../api/activity";
 import {
   createWorkItem,
   generateWorkStep,
+  getWorkItems,
   getWorkSteps,
   publishWorkStep,
 } from "../../api/platformBridge";
@@ -26,10 +26,10 @@ import type { PlatformObjectId, WorkItem, WorkStep } from "../../types/platform"
 //   -------------------------------------------------------------------------
 //   Activity Stream (unten, ueber die volle Breite)
 //
-// ObjectExplorer zeigt jetzt echte Work Items, Submissions und Artefakte
-// (realWorkItems/realSubmissions/realArtifacts, geladen aus dem
-// Repository zur Build-Zeit - siehe api/workItems.ts, api/submissions.ts,
-// api/artifacts.ts). Die Auswahl lebt als State im Workspace
+// ObjectExplorer zeigt echte Work Items, Submissions und Artefakte.
+// Work Items werden zur Laufzeit ueber die Platform Bridge aus dem
+// Repository geladen; Submissions und Artefakte weiterhin zur Build-Zeit.
+// Die Auswahl lebt als State im Workspace
 // (selectedId) - "Zustandshoheit beim Workspace" bleibt damit gewahrt,
 // ObjectExplorer selbst haelt weiterhin keinen eigenen Zustand.
 //
@@ -49,10 +49,8 @@ import type { PlatformObjectId, WorkItem, WorkStep } from "../../types/platform"
 // ruft createWorkItem() auf, das den Tauri-Command create_work_item
 // aufruft - dieser fuehrt wiederum das bestehende work_item.py als
 // Subprozess aus (Shell-Bootstrap, siehe ARCHITECTURE_NOTES.md und
-// src-tauri/src/main.rs). Das entstandene Work Item wird lokal in
-// newWorkItems aufgenommen, weil realWorkItems nur zur Build-Zeit ueber
-// import.meta.glob geladen wird (siehe api/workItems.ts) und nicht zur
-// Laufzeit nachlaedt - keine Erweiterung dieses Laders.
+// src-tauri/src/main.rs). Anschliessend wird die Work-Item-Liste ueber
+// denselben Laufzeitpfad aus dem Repository neu geladen.
 //
 // Zweiter Schreibpfad fuer den Zwei-Modell-Test: Fuer ein ausgewaehltes
 // Work Item kann ein sichtbarer Zwischenstand veroeffentlicht werden.
@@ -61,13 +59,22 @@ import type { PlatformObjectId, WorkItem, WorkStep } from "../../types/platform"
 // publishWorkStep() -> Tauri -> work_step.py -> THE VAULT/work_steps/.
 export function Workspace() {
   const [selectedId, setSelectedId] = useState<PlatformObjectId | null>(null);
-  const [newWorkItems, setNewWorkItems] = useState<WorkItem[]>([]);
+  const [workItems, setWorkItems] = useState<WorkItem[]>([]);
+  const [workItemsError, setWorkItemsError] = useState<string | null>(null);
   const [workSteps, setWorkSteps] = useState<WorkStep[]>([]);
   const [workStepsError, setWorkStepsError] = useState<string | null>(null);
   const [workStepProvider, setWorkStepProvider] =
     useState<WorkStepProvider>("openai");
-  const allWorkItems = [...realWorkItems, ...newWorkItems];
-  const selection = resolveSelection(selectedId, newWorkItems);
+  const selection = resolveSelection(selectedId, workItems);
+
+  async function refreshWorkItems() {
+    try {
+      setWorkItems(await getWorkItems());
+      setWorkItemsError(null);
+    } catch (err) {
+      setWorkItemsError(String(err));
+    }
+  }
 
   async function refreshWorkSteps(workItemId: string) {
     try {
@@ -78,6 +85,10 @@ export function Workspace() {
       setWorkStepsError(String(err));
     }
   }
+
+  useEffect(() => {
+    void refreshWorkItems();
+  }, []);
 
   useEffect(() => {
     if (!selectedId?.startsWith("WI-")) {
@@ -98,7 +109,7 @@ export function Workspace() {
 
     try {
       const workItem = await createWorkItem(intent.trim(), createdBy.trim());
-      setNewWorkItems((prev) => [...prev, workItem]);
+      await refreshWorkItems();
       setSelectedId(workItem.id);
     } catch (err) {
       window.alert(`Work Item konnte nicht erstellt werden: ${err}`);
@@ -151,7 +162,7 @@ export function Workspace() {
       <div className="workspace-main">
         <aside className="object-explorer" aria-label="Object Explorer">
           <ObjectExplorer
-            workItems={allWorkItems}
+            workItems={workItems}
             submissions={realSubmissions}
             artifacts={realArtifacts}
             selectedId={selectedId}
@@ -161,6 +172,13 @@ export function Workspace() {
         </aside>
 
         <main className="workspace-content">
+          <button type="button" onClick={() => void refreshWorkItems()}>
+            Work Items aktualisieren
+          </button>
+          {workItemsError ? (
+            <p>Work Items konnten nicht geladen werden: {workItemsError}</p>
+          ) : null}
+
           <button type="button" onClick={handlePublishWorkStep}>
             Zwischenstand veroeffentlichen
           </button>

@@ -24,6 +24,17 @@ struct PublishWorkStepResult {
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
+struct WorkItem {
+    id: String,
+    intent: String,
+    created_by: String,
+    created_at: String,
+    base_commit: String,
+    status: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
 struct WorkStep {
     id: String,
     work_item_id: String,
@@ -85,6 +96,32 @@ fn create_work_item(intent: String, created_by: String) -> Result<CreateWorkItem
         status: parts[1].to_string(),
         path: parts[2..].join(" "),
     })
+}
+
+#[tauri::command]
+fn get_work_items() -> Result<Vec<WorkItem>, String> {
+    let output = Command::new("python")
+        .arg("THE WORKSHOPS/platform/work_item.py")
+        .arg("list")
+        .current_dir(repo_root())
+        .output()
+        .map_err(|e| format!("work_item.py konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if !output.status.success() {
+        return Err(if !stdout.is_empty() {
+            stdout
+        } else if !stderr.is_empty() {
+            stderr
+        } else {
+            "work_item.py ist fehlgeschlagen (kein Ausgabetext)".to_string()
+        });
+    }
+
+    serde_json::from_str(&stdout)
+        .map_err(|e| format!("Unerwartete Ausgabe von work_item.py: {e}"))
 }
 
 #[tauri::command]
@@ -216,6 +253,7 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             create_work_item,
+            get_work_items,
             publish_work_step,
             generate_work_step,
             get_work_steps

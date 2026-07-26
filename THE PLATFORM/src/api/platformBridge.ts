@@ -32,6 +32,10 @@ export async function createWorkItem(intent: string, createdBy: string): Promise
   };
 }
 
+export async function getWorkItems(): Promise<WorkItem[]> {
+  return invoke<WorkItem[]>("get_work_items");
+}
+
 export async function publishWorkStep(
   workItemId: string,
   participantId: string,

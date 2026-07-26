@@ -8,6 +8,7 @@ Repository rekonstruierbar).
 
 Befehle:
     python work_item.py start --by <id> "<intent>"
+    python work_item.py list
     python work_item.py complete WI-XXXX
     python work_item.py abandon WI-XXXX
 
@@ -21,6 +22,7 @@ Es gibt aktuell keinen Befehl, der in_progress setzt; ein Work Item
 geht direkt von open zu completed oder abandoned ueber.
 """
 
+import json
 import re
 import subprocess
 import sys
@@ -116,6 +118,19 @@ def start(intent: str, created_by: str, work_items_dir: Path = WORK_ITEMS_DIR) -
     return WorkItemResult(success=True, id=wi_id, path=str(path), status=STATUS_OPEN)
 
 
+def list_work_items(work_items_dir: Path = WORK_ITEMS_DIR) -> list[dict]:
+    if not work_items_dir.exists():
+        return []
+
+    work_items = []
+    for path in sorted(work_items_dir.glob("WI-*.yaml")):
+        with open(path, encoding="utf-8-sig") as f:
+            data = yaml.safe_load(f)
+        if isinstance(data, dict):
+            work_items.append(data)
+    return work_items
+
+
 def _transition(wi_id: str, new_status: str, work_items_dir: Path) -> WorkItemResult:
     data = _load(wi_id, work_items_dir)
     if data is None:
@@ -176,6 +191,13 @@ def main():
         result = start(intent, created_by)
         _print_result(result)
         sys.exit(0 if result.success else 1)
+
+    elif cmd == "list":
+        if len(args) != 1:
+            print("Verwendung: python work_item.py list")
+            sys.exit(1)
+        print(json.dumps(list_work_items(), ensure_ascii=False))
+        sys.exit(0)
 
     elif cmd == "complete":
         if len(args) != 2:

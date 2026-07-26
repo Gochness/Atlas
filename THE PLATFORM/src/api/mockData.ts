@@ -4,7 +4,6 @@ import type {
   WorkItem,
   WorkspaceContext,
 } from "../types/platform";
-import { realWorkItems } from "./workItems";
 import { realSubmissions } from "./submissions";
 import { realArtifacts } from "./artifacts";
 import { realActivityEvents } from "./activity";
@@ -29,17 +28,15 @@ export const mockWorkspaceContext: WorkspaceContext = {
 // Beispiel-Kontexte mehr - waeren bei ID-Kollision mit echten Daten
 // fehleranfaellig, siehe workItems-Schritt).
 //
-// additionalWorkItems: zur Laufzeit ueber create_work_item entstandene
-// Work Items (siehe Workspace.tsx) - liegen noch nicht in der zur
-// Build-Zeit geladenen realWorkItems-Liste, muessen fuer die Auswahl
-// aber trotzdem auflösbar sein.
+// workItems: der zur Laufzeit ueber die Platform Bridge geladene
+// Repository-Bestand (siehe Workspace.tsx).
 export function resolveSelection(
   id: PlatformObjectId | null,
-  additionalWorkItems: WorkItem[] = [],
+  workItems: WorkItem[] = [],
 ): ContextInspectorSelection {
   if (!id) return { kind: "none" };
 
-  const workItem = [...realWorkItems, ...additionalWorkItems].find((w) => w.id === id);
+  const workItem = workItems.find((w) => w.id === id);
   if (workItem) {
     // linkedSubmissions/affectedArtifacts bleiben leer: Submissions
     // enthalten keine Referenz auf ein Work Item (siehe submissions.ts) -
