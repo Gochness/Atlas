@@ -9,7 +9,7 @@ import { realWorkItems } from "../../api/workItems";
 import { realSubmissions } from "../../api/submissions";
 import { realArtifacts } from "../../api/artifacts";
 import { realActivityEvents } from "../../api/activity";
-import { createWorkItem } from "../../api/platformBridge";
+import { createWorkItem, publishWorkStep } from "../../api/platformBridge";
 import type { PlatformObjectId, WorkItem } from "../../types/platform";
 
 // Workspace: die zentrale Koordinationskomponente (siehe
@@ -47,6 +47,12 @@ import type { PlatformObjectId, WorkItem } from "../../types/platform";
 // newWorkItems aufgenommen, weil realWorkItems nur zur Build-Zeit ueber
 // import.meta.glob geladen wird (siehe api/workItems.ts) und nicht zur
 // Laufzeit nachlaedt - keine Erweiterung dieses Laders.
+//
+// Zweiter Schreibpfad fuer den Zwei-Modell-Test: Fuer ein ausgewaehltes
+// Work Item kann ein sichtbarer Zwischenstand veroeffentlicht werden.
+// Teilnehmer und Inhalt werden fuer diesen minimalen Durchstich ebenfalls
+// ueber window.prompt() eingegeben. Die Persistenz laeuft ueber
+// publishWorkStep() -> Tauri -> work_step.py -> THE VAULT/work_steps/.
 export function Workspace() {
   const [selectedId, setSelectedId] = useState<PlatformObjectId | null>(null);
   const [newWorkItems, setNewWorkItems] = useState<WorkItem[]>([]);
@@ -56,6 +62,7 @@ export function Workspace() {
   async function handleNewObject() {
     const intent = window.prompt("Intent des neuen Work Items:");
     if (!intent || !intent.trim()) return;
+
     const createdBy = window.prompt("Erstellt von (created_by):");
     if (!createdBy || !createdBy.trim()) return;
 
@@ -65,6 +72,31 @@ export function Workspace() {
       setSelectedId(workItem.id);
     } catch (err) {
       window.alert(`Work Item konnte nicht erstellt werden: ${err}`);
+    }
+  }
+
+  async function handlePublishWorkStep() {
+    if (!selectedId || !selectedId.startsWith("WI-")) {
+      window.alert("Bitte zuerst ein Work Item auswaehlen.");
+      return;
+    }
+
+    const participantId = window.prompt("Teilnehmer:");
+    if (!participantId || !participantId.trim()) return;
+
+    const content = window.prompt("Sichtbarer Zwischenstand:");
+    if (!content || !content.trim()) return;
+
+    try {
+      const workStep = await publishWorkStep(
+        selectedId,
+        participantId.trim(),
+        content.trim(),
+      );
+
+      window.alert(`Zwischenstand ${workStep.id} wurde veroeffentlicht.`);
+    } catch (err) {
+      window.alert(`Zwischenstand konnte nicht veroeffentlicht werden: ${err}`);
     }
   }
 
@@ -83,6 +115,10 @@ export function Workspace() {
         </aside>
 
         <main className="workspace-content">
+          <button type="button" onClick={handlePublishWorkStep}>
+            Zwischenstand veroeffentlichen
+          </button>
+
           <ObjectEditor selection={selection} />
         </main>
 
@@ -96,7 +132,9 @@ export function Workspace() {
         <p className="placeholder-label">Activity Stream</p>
         <ActivityStream
           events={realActivityEvents}
-          onSelect={(objectId) => console.log("Activity Stream: Platzhalter-Klick auf", objectId)}
+          onSelect={(objectId) =>
+            console.log("Activity Stream: Platzhalter-Klick auf", objectId)
+          }
         />
       </footer>
     </div>
