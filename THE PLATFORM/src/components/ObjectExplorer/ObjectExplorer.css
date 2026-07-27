@@ -51,6 +51,13 @@
   gap: 3px;
 }
 
+/* v0.6: Auswahlwechsel ruhiger und nachvollziehbarer - die einzige
+   sichtbare Bestaetigung, welches Work Item gerade aktiv wird, ist dieser
+   Uebergang. 0.18s wirkte wie ein Schnappen; 0.32s mit ease-out laesst
+   sich beim Wechsel tatsaechlich verfolgen, ohne selbst wie eine
+   Aktivitaetsanzeige zu wirken (reine Zustandsanzeige, kein Loop, keine
+   Wiederholung). Einzige Aenderung dieses Schritts - keine neue Logik,
+   keine neuen Elemente, keine Datenaenderung. */
 .object-list-item {
   width: 100%;
   display: flex;
@@ -65,7 +72,7 @@
   text-align: left;
   cursor: pointer;
   color: #c7cad6;
-  transition: background-color 0.18s ease, box-shadow 0.18s ease;
+  transition: background-color 0.32s ease-out, box-shadow 0.32s ease-out;
 }
 
 .object-list-item:hover {
