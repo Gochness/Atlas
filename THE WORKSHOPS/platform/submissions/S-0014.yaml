@@ -1,0 +1,34 @@
+candidate:
+  basis: 'Untersuchung des aktuellen Atlas-Repositorys zu WI-0020: Work Items erfassen
+    base_commit automatisch als HEAD bei Erstellung; Submissions übernehmen ihn als
+    vom Einreicher angegebenen Wert; der Validator prüft nur das Hashformat; der Submission-Pfad
+    bindet ihn nicht an gelesenen Kontext oder Erkenntnisentstehung; die Materialisierung
+    prüft lediglich die Vorfahrenbeziehung zum aktuellen lokalen HEAD. Der reale Gegenfall
+    S-0013/PR-27 zeigt zusätzlich, dass ein gültiger base_commit einen falsch basierten
+    Pull Request nicht verhindert und Submission-Bezug und tatsächliche PR-/Materialisierungsbasis
+    derzeit nicht miteinander bindet.'
+  claim: Ein Git-Commit identifiziert einen konkreten versionierten Repository-Zustand.
+    Die gegenwärtige Atlas-Implementierung bindet durch base_commit jedoch weder tatsächlichen
+    Kontextabruf noch Erkenntnisentstehung oder Materialisierungsbasis nachweisbar
+    an diesen Zustand. base_commit besitzt derzeit je nach Objekt und Prozess unterschiedliche
+    operative Bedeutungen.
+  counter: base_commit könnte dennoch als ausreichender Herkunftsnachweis verstanden
+    werden, weil ein Git-Commit einen konkreten versionierten Repository-Zustand eindeutig
+    bezeichnet und die Materialisierung zusätzlich verlangt, dass dieser Commit Vorfahr
+    des aktuellen HEAD ist.
+  open: 'Offen bleibt, welche Semantik base_commit in Atlas künftig tragen soll: ob
+    es eine Behauptung des Teilnehmers oder eine systemseitige Provenienzangabe sein
+    soll; ob tatsächlicher Kontext samt Version gebunden werden muss; welcher Zeitpunkt
+    und welche Git-Referenz maßgeblich sind; ob Vorfahrenbeziehung genügt oder ein
+    exakter Snapshot erforderlich ist; wie Dirty- und unversionierte Inhalte behandelt
+    werden; und ob Work Items und Submissions unterschiedliche Felder oder Semantiken
+    benötigen.'
+  proposed_ref: ART-0012
+submission:
+  action: create
+  base_commit: be2620936971e1c1f800cc10d54c47269f0f6141
+  id: S-0014
+  submitted_at: '2026-07-27T15:11:52.003Z'
+  submitted_by: Enes
+  target: null
+  type: artifact
