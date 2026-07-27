@@ -85,12 +85,25 @@ import type { PlatformObjectId, WorkItem, WorkStep } from "../../types/platform"
 //     nicht wiederholendes Einblenden beim Wechsel des Work Items (siehe
 //     @keyframes in Workspace.css) - keine Dauerschleife, keine
 //     Aktivitaetssimulation.
+//
+// v0.6 Activity-Stream-Entkopplung: Der Activity Stream soll eine globale
+// Chronik sein, nicht von selectedId abhaengen. workStepActivityEvents()
+// (api/activity.ts) war dafuer bereits unabhaengig nutzbar - die
+// Einschraenkung lag ausschliesslich am selektionsgebundenen workSteps-
+// State. Neuer, separater State allWorkSteps wird geladen, sobald sich
+// workItems aendert (Promise.all ueber die bereits vorhandene
+// getWorkSteps()-Bridge, ein Aufruf pro Work Item - bei aktuell rund 20
+// Work Items unproblematisch, keine neue Backend-/Tauri-Funktion noetig).
+// workSteps (selektionsgebunden) bleibt fuer Arbeitslage und "Gemeinsame
+// Arbeit" unveraendert bestehen - beide sollen weiterhin nur das aktuell
+// gewaehlte Work Item zeigen.
 export function Workspace() {
   const [selectedId, setSelectedId] = useState<PlatformObjectId | null>(null);
   const [workItems, setWorkItems] = useState<WorkItem[]>([]);
   const [workItemsError, setWorkItemsError] = useState<string | null>(null);
   const [workSteps, setWorkSteps] = useState<WorkStep[]>([]);
   const [workStepsError, setWorkStepsError] = useState<string | null>(null);
+  const [allWorkSteps, setAllWorkSteps] = useState<WorkStep[]>([]);
   const [repositoryFilename, setRepositoryFilename] = useState("");
   const [repositoryFileMatches, setRepositoryFileMatches] = useState<string[]>(
     [],
@@ -106,7 +119,7 @@ export function Workspace() {
   const selection = resolveSelection(selectedId, workItems);
   const activityEvents = [
     ...realActivityEvents,
-    ...workStepActivityEvents(workSteps),
+    ...workStepActivityEvents(allWorkSteps),
   ].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
   const selectedWorkItem = workItems.find((w) => w.id === selectedId) ?? null;
 
@@ -132,6 +145,31 @@ export function Workspace() {
   useEffect(() => {
     void refreshWorkItems();
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAllWorkSteps() {
+      try {
+        const results = await Promise.all(
+          workItems.map((workItem) => getWorkSteps(workItem.id)),
+        );
+        if (!cancelled) {
+          setAllWorkSteps(results.flat());
+        }
+      } catch {
+        if (!cancelled) {
+          setAllWorkSteps([]);
+        }
+      }
+    }
+
+    void loadAllWorkSteps();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workItems]);
 
   useEffect(() => {
     if (!selectedId?.startsWith("WI-")) {
