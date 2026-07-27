@@ -68,6 +68,23 @@ import type { PlatformObjectId, WorkItem, WorkStep } from "../../types/platform"
 // bereits vorhandenen workItems/workSteps, kein neuer Ladepfad, keine
 // neue Semantik - siehe Kommentar dort fuer die dokumentierte Grundlage
 // der "letzter Beitrag"-Reihenfolge.
+//
+// v0.5: Zustandsdarstellung des zentralen Arbeitsraums. Ausschliesslich
+// aus bereits vorhandenen, strukturierten Fakten abgeleitet - workSteps.length
+// (0 oder >0) und der bestehende WorkItem.status ("completed" ist der
+// einzige Wert mit eigener Behandlung, alle anderen bleiben unveraendert/
+// "offen"). Keine neuen Felder, keine Textinterpretation:
+//   - .shared-work--active (workSteps.length > 0): etwas mehr visuelles
+//     Gewicht fuer die Spuren gemeinsamer Arbeit, keine Bewertung
+//     einzelner Beitraege.
+//   - .workspace-focus--completed (status === "completed"): der Gold-
+//     Akzent des ID-Badges wird zu einem ruhigen Neutralton, sonst keine
+//     Aenderung - kein Symbol, keine gruene Flaeche, die Historie bleibt
+//     unveraendert sichtbar.
+//   - .workspace-room, per key={selectedId} neu gemountet: einmaliges,
+//     nicht wiederholendes Einblenden beim Wechsel des Work Items (siehe
+//     @keyframes in Workspace.css) - keine Dauerschleife, keine
+//     Aktivitaetssimulation.
 export function Workspace() {
   const [selectedId, setSelectedId] = useState<PlatformObjectId | null>(null);
   const [workItems, setWorkItems] = useState<WorkItem[]>([]);
@@ -244,8 +261,14 @@ export function Workspace() {
         </aside>
 
         <main className="workspace-content">
+        <div className="workspace-room" key={selectedId ?? "empty"}>
           {selectedWorkItem ? (
-            <header className="workspace-focus">
+            <header
+              className={
+                "workspace-focus" +
+                (selectedWorkItem.status === "completed" ? " workspace-focus--completed" : "")
+              }
+            >
               <div className="workspace-focus-top">
                 <span className="workspace-focus-id">{selectedWorkItem.id}</span>
                 <span className="workspace-focus-status">
@@ -302,7 +325,10 @@ export function Workspace() {
             </p>
           ) : null}
 
-          <section className="shared-work" aria-label="WorkSteps">
+          <section
+            className={"shared-work" + (workSteps.length > 0 ? " shared-work--active" : "")}
+            aria-label="WorkSteps"
+          >
             <div className="shared-work-heading">
               <div>
                 <p className="shared-work-kicker">WorkSteps</p>
@@ -394,6 +420,7 @@ export function Workspace() {
             selection={selection}
             onEditWorkItemContextRefs={handleEditWorkItemContextRefs}
           />
+        </div>
         </main>
 
         <aside className="context-inspector" aria-label="Context Inspector">

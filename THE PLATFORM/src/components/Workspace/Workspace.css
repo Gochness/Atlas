@@ -18,7 +18,14 @@
   height: 100vh;
   width: 100vw;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #1c1c1e;
+  /* v0.5.1 Nachpruefung: Wurzelursache der gefundenen hellen Reststellen -
+     dieser geerbte Textfarbwert war seit v0.1 unveraendert #1c1c1e
+     (fast schwarz) geblieben. Jedes Element ohne eigene color-Regel (z. B.
+     das contextRefs-Formular) erbte dadurch weiterhin die alte helle
+     Textfarbe, unabhaengig davon, wie viele einzelne Komponenten in
+     v0.2-v0.5.1 explizit umgestellt wurden. Reine Farbaenderung, keine
+     Struktur-/Layoutaenderung. */
+  color: #c7cad6;
   background: linear-gradient(180deg, #12141b 0%, #0d0f15 100%);
 }
 
@@ -57,9 +64,37 @@
     #12151c;
 }
 
+/* v0.5: einmaliges, ruhiges Einblenden beim Wechsel des Work Items (die
+   Komponente wird per key={selectedId} in Workspace.tsx neu gemountet,
+   die Animation spielt dadurch genau einmal je Wechsel ab - keine
+   Wiederholung, kein Puls, keine Aktivitaetssimulation). */
+.workspace-room {
+  animation: workspace-room-fade-in 0.4s ease;
+}
+
+@keyframes workspace-room-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .workspace-focus {
   padding: 0 0 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* v0.5, Zustand "completed": ausschliesslich der Gold-Akzent des
+   ID-Badges wird zu einem ruhigen Neutralton - kein Symbol, keine gruene
+   Flaeche, kein zusaetzlicher Text. Alle anderen Status (open,
+   in_progress, abandoned) bleiben unveraendert bei der Standarddarstellung
+   ("nur der belegte Status open" -> keine eigene Behandlung noetig). */
+.workspace-focus--completed .workspace-focus-id {
+  border-color: rgba(139, 144, 160, 0.4);
+  color: #b6bac6;
+  background: rgba(139, 144, 160, 0.08);
 }
 
 .workspace-focus-label,
@@ -190,6 +225,16 @@
    wurden dafuer verkleinert (siehe oben/Arbeitslage.css). */
 .shared-work {
   margin: 8px 0 32px;
+  padding-top: 4px;
+  border-top: 1px solid transparent;
+}
+
+/* v0.5, Zustand "mit WorkSteps": ein schmaler, gedaempfter oberer
+   Akzentstrich rueckt den Bereich sichtbar staerker in den Mittelpunkt,
+   sobald tatsaechlich Spuren vorhanden sind (workSteps.length > 0) - keine
+   Bewertung einzelner Beitraege, nur ob ueberhaupt welche existieren. */
+.shared-work--active {
+  border-top-color: rgba(185, 154, 99, 0.18);
 }
 
 .shared-work-heading {
@@ -252,11 +297,16 @@
   white-space: pre-wrap;
 }
 
+/* v0.5, Zustand "ohne WorkSteps": bewusst kein gestrichelter Rahmen mehr -
+   das ist die uebliche Konvention fuer "hier fehlt etwas"/Platzhalter und
+   widerspricht "wirkt ruhig und vollstaendig". Stattdessen derselbe
+   ruhige, durchgezogene Flaechenstil wie Werkzeugleiste/Arbeitslage. */
 .shared-work-empty {
   margin: 0;
-  padding: 20px;
-  border: 1px dashed rgba(255, 255, 255, 0.12);
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 9px;
+  background: rgba(255, 255, 255, 0.02);
   color: #6f7688;
   text-align: center;
 }
@@ -286,6 +336,28 @@
 .empty-state {
   margin: 0;
   font-size: 0.9rem;
+  color: #6f7688;
+}
+
+/* v0.5.1: reine Lesbarkeitskorrektur fuer die Repository-Datei-Suche -
+   dieser Abschnitt hatte bisher keine eigene Klasse und erbte
+   .workspace-shells helle-Oberflaeche-Textfarbe (#1c1c1e), die auf dem
+   seit v0.2 dunklen Hintergrund unlesbar war. Ausschliesslich ueber das
+   bereits vorhandene aria-label als Selektor angesprochen - keine
+   Aenderung an Workspace.tsx, kein neues Markup, keine neue Struktur. */
+section[aria-label="Repository-Datei suchen"] {
+  color: #c7cad6;
+}
+
+section[aria-label="Repository-Datei suchen"] label {
+  color: #6f7688;
+}
+
+/* Gleicher Fund, gleiche Ursache: das contextRefs-Bearbeitungsformular
+   (einziges <form> in .workspace-content, daher eindeutig ueber diesen
+   Selektor ansprechbar) hatte ebenfalls keine eigene Label-Farbe und erbte
+   bis eben denselben alten Wurzelwert. */
+.workspace-content form label {
   color: #6f7688;
 }
 
