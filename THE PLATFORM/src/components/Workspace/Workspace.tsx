@@ -20,6 +20,7 @@ import {
   publishWorkStep,
   resolveRepositoryFile,
   setWorkItemContextRefs,
+  submitStructured,
 } from "../../api/platformBridge";
 import type { WorkStepProvider } from "../../api/platformBridge";
 import type { PlatformObjectId, WorkItem, WorkStep } from "../../types/platform";
@@ -63,6 +64,24 @@ import type { PlatformObjectId, WorkItem, WorkStep } from "../../types/platform"
 // Teilnehmer und Inhalt werden fuer diesen minimalen Durchstich ebenfalls
 // ueber window.prompt() eingegeben. Die Persistenz laeuft ueber
 // publishWorkStep() -> Tauri -> work_step.py -> THE VAULT/work_steps/.
+//
+// Dritter Schreibpfad: Submission erstellen. Ruft submitStructured()
+// unveraendert auf (Bridge -> Tauri-Command submit_structured ->
+// submit_structured.py -> submission_adapter.py -> das bestehende,
+// unveraenderte submission_service.submit()). Alle Pflichtfelder aus
+// validator.py (SUB_FIELDS/CAND_FIELDS) werden einzeln per window.prompt()
+// abgefragt - keine neue Submission-Logik, kein neues Datenmodell.
+// base_commit wird ausschliesslich vom Teilnehmer eingegeben, nicht
+// automatisch hergeleitet (siehe Analyse "Vorpruefung Submission aus der
+// Plattform / base_commit"): dieser Trigger entscheidet nichts ueber die
+// Bedeutung von base_commit, er macht lediglich den bestehenden,
+// unveraenderten Pfad aus der Plattform heraus erreichbar. Submissions
+// sind laut Schema nicht an ein Work Item gebunden (S-XXXX.yaml enthaelt
+// kein work_item_id-Feld) - der Button ist deshalb unabhaengig von
+// selectedId immer verfuegbar, analog zu "Work Items aktualisieren".
+// submitted_at wird wie bei publishWorkStep() clientseitig per
+// new Date().toISOString() gesetzt - reiner technischer Zeitstempel des
+// Einreichens, keine inhaltliche Entscheidung.
 //
 // Arbeitslage v0.1 (siehe components/Arbeitslage): reine Projektion aus
 // bereits vorhandenen workItems/workSteps, kein neuer Ladepfad, keine
@@ -223,6 +242,70 @@ export function Workspace() {
     }
   }
 
+  async function handleSubmitStructured() {
+    const id = window.prompt("Submission-ID (z. B. S-0012):");
+    if (!id || !id.trim()) return;
+
+    const type = window.prompt("Typ (artifact / judgment / contradiction):");
+    if (!type || !type.trim()) return;
+
+    const action = window.prompt("Aktion (create / update):");
+    if (!action || !action.trim()) return;
+
+    const target = window.prompt(
+      "Target (leer lassen, falls für diese Kombination aus type/action kein Target erforderlich ist):",
+    );
+
+    const baseCommit = window.prompt(
+      "Base Commit (Hash des Stands, auf dem diese Submission beruht):",
+    );
+    if (!baseCommit || !baseCommit.trim()) return;
+
+    const submittedBy = window.prompt("Eingereicht von (submitted_by):");
+    if (!submittedBy || !submittedBy.trim()) return;
+
+    const proposedRef = window.prompt("Vorgeschlagene Referenz (proposed_ref):");
+    if (!proposedRef || !proposedRef.trim()) return;
+
+    const claim = window.prompt("Behauptung (claim):");
+    if (!claim || !claim.trim()) return;
+
+    const basis = window.prompt("Grundlage (basis):");
+    if (!basis || !basis.trim()) return;
+
+    const counter = window.prompt("Gegenposition (counter):");
+    if (!counter || !counter.trim()) return;
+
+    const open = window.prompt("Offene Punkte (open):");
+    if (!open || !open.trim()) return;
+
+    try {
+      const result = await submitStructured({
+        submission: {
+          id: id.trim(),
+          type: type.trim(),
+          action: action.trim(),
+          target: target && target.trim() ? target.trim() : null,
+          base_commit: baseCommit.trim(),
+          submitted_by: submittedBy.trim(),
+          submitted_at: new Date().toISOString(),
+        },
+        candidate: {
+          proposed_ref: proposedRef.trim(),
+          claim: claim.trim(),
+          basis: basis.trim(),
+          counter: counter.trim(),
+          open: open.trim(),
+        },
+      });
+      window.alert(
+        `Submission ${result.submissionId} wurde erzeugt: ${result.pullRequestUrl}`,
+      );
+    } catch (err) {
+      window.alert(`Submission konnte nicht erzeugt werden: ${err}`);
+    }
+  }
+
   function handleEditWorkItemContextRefs(workItem: WorkItem) {
     setContextRefsEditorWorkItemId(workItem.id);
     setContextRefsDraft(workItem.contextRefs.join("\n"));
@@ -336,6 +419,9 @@ export function Workspace() {
               </button>
               <button type="button" onClick={handlePublishWorkStep}>
                 Zwischenstand veröffentlichen
+              </button>
+              <button type="button" onClick={() => void handleSubmitStructured()}>
+                Submission erstellen
               </button>
             </div>
 
