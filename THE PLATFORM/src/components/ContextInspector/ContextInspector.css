@@ -1,31 +1,37 @@
+/* Weniger Formulargefuehl: grosszuegigerer Abstand zwischen Feldern statt
+   dicht gestapelter Label/Wert-Zeilen, Label deutlich leiser als der Wert
+   (kein gleichgewichtetes Zeilenpaar mehr) - liest sich naeher an knappen
+   Kontextnotizen als an einem ausgefuellten Formular. Dieselben Felder,
+   nur ruhiger gesetzt. */
 .context-fields {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 .context-field {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .context-field-label {
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #6b6b70;
+  color: #6f7688;
 }
 
 .context-field-value {
   margin: 0;
   font-size: 0.85rem;
-  color: #1c1c1e;
+  color: #c7cad6;
+  line-height: 1.5;
   word-break: break-word;
 }
 
 .context-field-empty {
-  color: #9a9a9e;
+  color: #6f7688;
 }

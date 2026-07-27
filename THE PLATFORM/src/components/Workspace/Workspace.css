@@ -2,14 +2,15 @@
    Die Breite des Object Explorers ist derzeit nicht durch die
    UX-Spezifikation festgelegt. */
 
-/* v0.2: Object Explorer, Context Inspector und Activity Stream bleiben
-   bewusst HELL (siehe .object-explorer/.context-inspector/.activity-stream
-   unten, unveraendert). Ihr Text (.object-list-item, .context-field-value,
-   .activity-stream-item in den jeweils eigenen, laut Auftrag nicht zu
-   aendernden CSS-Dateien) ist fest auf #1c1c1e verdrahtet - auf dunklem
-   Grund waere er unlesbar. Die dunkle Atlas-Atmosphaere gilt deshalb in
-   diesem Schritt nur fuer den zentralen Arbeitsraum (.workspace-content
-   und Kinder), nicht fuer alle vier Zonen gleichzeitig. Siehe Bericht. */
+/* v0.4: Die in v0.2/v0.3 dokumentierte Einschraenkung (ObjectExplorer/
+   ContextInspector/ActivityStream bleiben hell, weil ihr Text fest auf
+   dunkel verdrahtet war) ist aufgehoben - dieser Auftrag erlaubt erstmals
+   Aenderungen an ObjectExplorer.css/ContextInspector.css/ActivityStream.css
+   selbst. Alle vier Raeume nutzen jetzt dieselbe dunkle Atlas-Palette:
+   Grundflaeche #12151c/#0d0f15, Text #c7cad6 (Inhalt) / #6f7688
+   (sekundaer/Label) / #b99a63 (Gold-Akzent fuer Kicker/Selektion) -
+   durchgaengig aus Workspace.css/Arbeitslage.css uebernommen, keine neue
+   Farbsprache erfunden. */
 
 .workspace-shell {
   display: flex;
@@ -32,18 +33,18 @@
 .context-inspector {
   overflow-y: auto;
   padding: 16px;
-  background: #f1f0ec;
-  /* Weiche Tiefe statt harter Trennlinie: der Schatten faellt zur Mitte
-     hin ab, als laege der zentrale Workspace eine Ebene hoeher. */
+  /* Leicht abgesetzter Farbton gegenueber .workspace-content (#12151c) -
+     erzeugt eine ruhige, aber wahrnehmbare Raumgrenze ohne harte Linie. */
+  background: #14171f;
   position: relative;
 }
 
 .object-explorer {
-  box-shadow: inset -10px 0 14px -14px rgba(30, 27, 20, 0.18);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .context-inspector {
-  box-shadow: inset 10px 0 14px -14px rgba(30, 27, 20, 0.18);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .workspace-content {
@@ -265,23 +266,27 @@
   height: 140px;
   overflow-y: auto;
   padding: 12px 24px;
-  background: #f1f0ec;
-  box-shadow: 0 -6px 12px -8px rgba(30, 27, 20, 0.16);
+  background: #14171f;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+/* Einheitlicher Kicker fuer alle vier Raeume - dieselbe Behandlung wie
+   "ARBEITSLAGE"/"WORKSTEPS" im zentralen Arbeitsraum, damit Object
+   Explorer, Context Inspector und Activity Stream sich sichtbar als Teile
+   desselben Raums lesen statt als separate helle Kacheln. */
 .placeholder-label {
   margin: 0 0 8px 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: #6b6b70;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #b99a63;
   text-transform: uppercase;
 }
 
 .empty-state {
   margin: 0;
   font-size: 0.9rem;
-  color: #9a9a9e;
+  color: #6f7688;
 }
 
 @media (max-width: 900px) {

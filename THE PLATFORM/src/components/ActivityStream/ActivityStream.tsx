@@ -12,6 +12,11 @@ import type { ActivityEvent, PlatformObjectId } from "../../types/platform";
 // Erwartet die Ereignisse bereits chronologisch sortiert (neueste
 // zuerst) - sortiert selbst nicht um, um keine Annahme ueber die
 // Datenquelle zu treffen.
+//
+// v0.4: Zeitstempel steht jetzt vor dem Label (statt danach) - liest sich
+// als Chronikeintrag ("14:32 - Ereignis") statt als Tabellenzeile mit
+// rechtsbuendiger Randspalte. Dieselben zwei Felder, nur andere
+// Reihenfolge - keine neue Information.
 export interface ActivityStreamProps {
   events: ActivityEvent[];
   onSelect: (objectId: PlatformObjectId) => void;
@@ -31,8 +36,8 @@ export function ActivityStream({ events, onSelect }: ActivityStreamProps) {
                 className="activity-stream-item"
                 onClick={() => onSelect(event.objectId)}
               >
-                <span className="activity-stream-item-label">{event.label}</span>
                 <span className="activity-stream-item-timestamp">{event.timestamp}</span>
+                <span className="activity-stream-item-label">{event.label}</span>
               </button>
             </li>
           ))}
