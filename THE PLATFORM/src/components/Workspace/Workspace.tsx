@@ -41,9 +41,9 @@ import type { PlatformObjectId, WorkItem, WorkStep } from "../../types/platform"
 //
 // ActivityStream zeigt jetzt echte Ereignisse (realActivityEvents,
 // abgeleitet aus created_at/submitted_at/"Materialisiert am" derselben
-// Repository-Dateien - siehe api/activity.ts). Der Klick-Handler bleibt
-// ein Platzhalter (console.log) - Navigation ist nicht Teil dieses
-// Schritts.
+// Repository-Dateien - siehe api/activity.ts). v0.6: Klick auf einen
+// Eintrag ruft setSelectedId(objectId) auf - derselbe Mechanismus wie
+// ObjectExplorer.onSelect, keine neue Zustandsquelle.
 //
 // ObjectEditor und ContextInspector erhalten laut Datenfluss (Architektur
 // Abschnitt 6, Schritt 5) dasselbe aktive Objekt vom Workspace: beide
@@ -471,9 +471,7 @@ export function Workspace() {
         <p className="placeholder-label">Activity Stream</p>
         <ActivityStream
           events={activityEvents}
-          onSelect={(objectId) =>
-            console.log("Activity Stream: Platzhalter-Klick auf", objectId)
-          }
+          onSelect={setSelectedId}
         />
       </footer>
     </div>
