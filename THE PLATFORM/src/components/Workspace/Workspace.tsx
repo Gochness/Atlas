@@ -246,14 +246,15 @@ export function Workspace() {
         <main className="workspace-content">
           {selectedWorkItem ? (
             <header className="workspace-focus">
-              <p className="workspace-focus-label">Ausgewähltes Work Item</p>
-              <div className="workspace-focus-heading">
-                <h1>{selectedWorkItem.intent}</h1>
+              <div className="workspace-focus-top">
                 <span className="workspace-focus-id">{selectedWorkItem.id}</span>
+                <span className="workspace-focus-status">
+                  Status: {selectedWorkItem.status}
+                </span>
               </div>
-              <p className="workspace-focus-meta">
-                Status: {selectedWorkItem.status}
-              </p>
+              <h1 className="workspace-focus-title" title={selectedWorkItem.intent}>
+                {selectedWorkItem.intent}
+              </h1>
             </header>
           ) : (
             <header className="workspace-focus workspace-focus-empty">
