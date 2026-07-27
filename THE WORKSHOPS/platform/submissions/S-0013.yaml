@@ -1,0 +1,24 @@
+candidate:
+  basis: WS-0053, WS-0054, WS-0055 und der Vergleich WS-0056 im Work Item WI-0020.
+    Alle drei unabhängigen Teilnehmerbeiträge zeigen, dass keine ausreichende Kontextgrundlage
+    für eine belastbare Untersuchung vorhanden war. WS-0056 vergleicht die Beiträge
+    und bestätigt, dass keine inhaltlichen Widersprüche zwischen den Beobachtungen
+    vorliegen.
+  claim: In WI-0020 konnten drei unabhängige Teilnehmer keine belastbare Untersuchung
+    der BASE-COMMIT-Semantik durchführen, da außer dem Work-Item-Titel keine Kontextgrundlage
+    bereitgestellt wurde.
+  counter: Eine Gegenprüfung mit bereitgestelltem Kontext wurde in diesem Arbeitsfall
+    nicht durchgeführt. Daher folgt aus dem Befund nicht, welche Kontextmenge ausreichend
+    wäre oder dass fehlender Kontext generell jede belastbare Untersuchung verhindert.
+  open: Wie Atlas einem Teilnehmer ausreichenden Kontext bereitstellen kann, ohne
+    dabei unbelegte Relevanzentscheidungen zu treffen, bleibt offen und ist nicht
+    Gegenstand dieses Befunds.
+  proposed_ref: ART-0011
+submission:
+  action: create
+  base_commit: be2620936971e1c1f800cc10d54c47269f0f6141
+  id: S-0013
+  submitted_at: '2026-07-27T11:04:21.279Z'
+  submitted_by: Enes
+  target: null
+  type: artifact
