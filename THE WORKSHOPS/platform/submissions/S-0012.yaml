@@ -1,0 +1,25 @@
+candidate:
+  basis: submitStructured() (platformBridge.ts) ruft unveraendert den Tauri-Command
+    submit_structured auf, der submit_structured.py -> submission_adapter.py -> submission_service.submit()
+    aufruft. Diese Submission wurde ausschliesslich durch einen Klick auf den neuen
+    Button in der laufenden Anwendung ausgeloest, alle Pflichtfelder wurden ueber
+    window.prompt() eingegeben.
+  claim: Die Plattform kann Submissions jetzt ueber einen UI-Trigger in Workspace.tsx
+    ("Submission erstellen") ausloesen, ohne den bestehenden Submission-Pfad zu veraendern.
+  counter: GV1 - Ist damit die base_commit-Semantik geklaert? Nein, base_commit wurde
+    fuer diesen Test manuell als aktueller HEAD angegeben, ohne automatische Herleitung
+    oder neue Bedeutung. GV2 - Erscheint diese Submission automatisch in Atlas? Nein,
+    realSubmissions laedt Submissions zur Build-Zeit aus dem lokalen master-Arbeitsverzeichnis;
+    auf dem separaten Branch committet und gepusht, taucht sie dort erst nach einem
+    Merge auf.
+  open: Ob und wann dieser Pull Request gemerged wird, ist nicht Teil dieses technischen
+    Tests.
+  proposed_ref: ART-0010
+submission:
+  action: create
+  base_commit: 7054a22eb2f9ddf077b3f115cd0f18d98c745a14
+  id: S-0012
+  submitted_at: '2026-07-27T09:09:43.284Z'
+  submitted_by: claude-code
+  target: null
+  type: artifact
