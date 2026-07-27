@@ -5,8 +5,8 @@
 // Prozess) ist damit bewusst nicht vorweggenommen.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use serde::Serialize;
-use std::path::PathBuf;
+use serde::{Deserialize, Serialize};
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 #[derive(Serialize)]
@@ -14,6 +14,42 @@ struct CreateWorkItemResult {
     id: String,
     status: String,
     path: String,
+}
+
+#[derive(Serialize)]
+struct PublishWorkStepResult {
+    id: String,
+    path: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SubmitStructuredResult {
+    submission_id: String,
+    pull_request_url: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
+struct WorkItem {
+    id: String,
+    intent: String,
+    created_by: String,
+    created_at: String,
+    base_commit: String,
+    status: String,
+    #[serde(default)]
+    context_refs: Vec<String>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
+struct WorkStep {
+    id: String,
+    work_item_id: String,
+    participant_id: String,
+    content: String,
+    created_at: String,
 }
 
 // CARGO_MANIFEST_DIR zeigt zur Kompilierzeit auf THE PLATFORM/src-tauri;
@@ -30,15 +66,25 @@ fn repo_root() -> PathBuf {
         .to_path_buf()
 }
 
+fn atlas_python_at(repo_root: &Path) -> Result<PathBuf, String> {
+    let python = repo_root.join(".venv").join("Scripts").join("python.exe");
+    if !python.is_file() {
+        return Err(format!("Atlas-Python nicht gefunden: {}", python.display()));
+    }
+    Ok(python)
+}
+
 #[tauri::command]
 fn create_work_item(intent: String, created_by: String) -> Result<CreateWorkItemResult, String> {
-    let output = Command::new("python")
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let output = Command::new(python)
         .arg("THE WORKSHOPS/platform/work_item.py")
         .arg("start")
         .arg("--by")
         .arg(&created_by)
         .arg(&intent)
-        .current_dir(repo_root())
+        .current_dir(repo_root)
         .output()
         .map_err(|e| format!("work_item.py konnte nicht gestartet werden: {e}"))?;
 
@@ -71,9 +117,344 @@ fn create_work_item(intent: String, created_by: String) -> Result<CreateWorkItem
     })
 }
 
+#[tauri::command]
+fn get_work_items() -> Result<Vec<WorkItem>, String> {
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let output = Command::new(python)
+        .arg("THE WORKSHOPS/platform/work_item.py")
+        .arg("list")
+        .current_dir(repo_root)
+        .output()
+        .map_err(|e| format!("work_item.py konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if !output.status.success() {
+        return Err(if !stdout.is_empty() {
+            stdout
+        } else if !stderr.is_empty() {
+            stderr
+        } else {
+            "work_item.py ist fehlgeschlagen (kein Ausgabetext)".to_string()
+        });
+    }
+
+    serde_json::from_str(&stdout).map_err(|e| format!("Unerwartete Ausgabe von work_item.py: {e}"))
+}
+
+#[tauri::command]
+fn resolve_repository_file(filename: String) -> Result<Vec<String>, String> {
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let output = Command::new(python)
+        .arg("THE WORKSHOPS/platform/work_item.py")
+        .arg("resolve-file")
+        .arg(&filename)
+        .current_dir(repo_root)
+        .output()
+        .map_err(|e| format!("work_item.py konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if !output.status.success() {
+        return Err(if !stdout.is_empty() {
+            stdout
+        } else if !stderr.is_empty() {
+            stderr
+        } else {
+            "work_item.py ist fehlgeschlagen (kein Ausgabetext)".to_string()
+        });
+    }
+
+    serde_json::from_str(&stdout).map_err(|e| format!("Unerwartete Ausgabe von work_item.py: {e}"))
+}
+
+#[tauri::command]
+fn set_work_item_context_refs(
+    work_item_id: String,
+    context_refs: Vec<String>,
+) -> Result<CreateWorkItemResult, String> {
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let context_refs_json = serde_json::to_string(&context_refs)
+        .map_err(|e| format!("context_refs konnten nicht serialisiert werden: {e}"))?;
+    let output = Command::new(python)
+        .arg("THE WORKSHOPS/platform/work_item.py")
+        .arg("set-context-refs")
+        .arg(&work_item_id)
+        .arg(context_refs_json)
+        .current_dir(repo_root)
+        .output()
+        .map_err(|e| format!("work_item.py konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if !output.status.success() {
+        return Err(if !stdout.is_empty() {
+            stdout
+        } else if !stderr.is_empty() {
+            stderr
+        } else {
+            "work_item.py ist fehlgeschlagen (kein Ausgabetext)".to_string()
+        });
+    }
+
+    let rest = stdout
+        .strip_prefix("OK")
+        .ok_or_else(|| format!("Unerwartete Ausgabe von work_item.py: {stdout}"))?;
+    let parts: Vec<&str> = rest.split_whitespace().collect();
+    if parts.len() < 3 {
+        return Err(format!("Unerwartete Ausgabe von work_item.py: {stdout}"));
+    }
+
+    Ok(CreateWorkItemResult {
+        id: parts[0].to_string(),
+        status: parts[1].to_string(),
+        path: parts[2..].join(" "),
+    })
+}
+
+#[tauri::command]
+fn submit_structured(data: serde_json::Value) -> Result<SubmitStructuredResult, String> {
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let data_json = serde_json::to_string(&data)
+        .map_err(|e| format!("Submission-Daten konnten nicht serialisiert werden: {e}"))?;
+    let script = "THE WORKSHOPS/platform/submit_structured.py";
+    let output = Command::new(python)
+        .arg(script)
+        .arg(data_json)
+        .current_dir(repo_root)
+        .output()
+        .map_err(|e| format!("{script} konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if !output.status.success() {
+        return Err(if !stdout.is_empty() {
+            stdout
+        } else if !stderr.is_empty() {
+            stderr
+        } else {
+            format!("{script} ist fehlgeschlagen (kein Ausgabetext)")
+        });
+    }
+
+    // Erfolgsformat von submit_structured.py: "OK  S-XXXX  <pull-request-url>"
+    let rest = stdout
+        .strip_prefix("OK")
+        .ok_or_else(|| format!("Unerwartete Ausgabe von {script}: {stdout}"))?;
+    let parts: Vec<&str> = rest.split_whitespace().collect();
+    if parts.len() < 2 {
+        return Err(format!("Unerwartete Ausgabe von {script}: {stdout}"));
+    }
+
+    Ok(SubmitStructuredResult {
+        submission_id: parts[0].to_string(),
+        pull_request_url: parts[1..].join(" "),
+    })
+}
+
+#[tauri::command]
+fn publish_work_step(
+    work_item_id: String,
+    participant_id: String,
+    content: String,
+) -> Result<PublishWorkStepResult, String> {
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let output = Command::new(python)
+        .arg("THE WORKSHOPS/platform/work_step.py")
+        .arg("publish")
+        .arg("--work-item")
+        .arg(&work_item_id)
+        .arg("--by")
+        .arg(&participant_id)
+        .arg(&content)
+        .current_dir(repo_root)
+        .output()
+        .map_err(|e| format!("work_step.py konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if !output.status.success() {
+        return Err(if !stdout.is_empty() {
+            stdout
+        } else if !stderr.is_empty() {
+            stderr
+        } else {
+            "work_step.py ist fehlgeschlagen (kein Ausgabetext)".to_string()
+        });
+    }
+
+    // Erfolgsformat von work_step.py: "OK  WS-XXXX  <path>"
+    let rest = stdout
+        .strip_prefix("OK")
+        .ok_or_else(|| format!("Unerwartete Ausgabe von work_step.py: {stdout}"))?;
+    let parts: Vec<&str> = rest.split_whitespace().collect();
+    if parts.len() < 2 {
+        return Err(format!("Unerwartete Ausgabe von work_step.py: {stdout}"));
+    }
+
+    Ok(PublishWorkStepResult {
+        id: parts[0].to_string(),
+        path: parts[1..].join(" "),
+    })
+}
+
+fn work_step_adapter(provider: &str) -> Result<&'static str, String> {
+    match provider {
+        "openai" => Ok("THE WORKSHOPS/platform/openai_work_step.py"),
+        "anthropic" => Ok("THE WORKSHOPS/platform/anthropic_work_step.py"),
+        "gemini" => Ok("THE WORKSHOPS/platform/gemini_work_step.py"),
+        _ => Err(format!("Unbekannter WorkStep-Provider: {provider}")),
+    }
+}
+
+#[tauri::command]
+fn generate_work_step(
+    provider: String,
+    work_item_id: String,
+) -> Result<PublishWorkStepResult, String> {
+    let script = work_step_adapter(&provider)?;
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let output = Command::new(python)
+        .arg(script)
+        .arg("generate")
+        .arg("--work-item")
+        .arg(&work_item_id)
+        .current_dir(repo_root)
+        .output()
+        .map_err(|e| format!("{script} konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if !output.status.success() {
+        return Err(if !stderr.is_empty() {
+            stderr
+        } else if !stdout.is_empty() {
+            stdout
+        } else {
+            format!("{script} ist fehlgeschlagen (kein Ausgabetext)")
+        });
+    }
+
+    // Erfolgsformat beider Adapter: "OK  WS-XXXX  <path>"
+    let rest = stdout
+        .strip_prefix("OK")
+        .ok_or_else(|| format!("Unerwartete Ausgabe von {script}: {stdout}"))?;
+    let parts: Vec<&str> = rest.split_whitespace().collect();
+    if parts.len() < 2 {
+        return Err(format!("Unerwartete Ausgabe von {script}: {stdout}"));
+    }
+
+    Ok(PublishWorkStepResult {
+        id: parts[0].to_string(),
+        path: parts[1..].join(" "),
+    })
+}
+
+#[tauri::command]
+fn get_work_steps(work_item_id: String) -> Result<Vec<WorkStep>, String> {
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let output = Command::new(python)
+        .arg("THE WORKSHOPS/platform/work_step.py")
+        .arg("list")
+        .arg("--work-item")
+        .arg(&work_item_id)
+        .current_dir(repo_root)
+        .output()
+        .map_err(|e| format!("work_step.py konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+
+    if !output.status.success() {
+        return Err(if !stdout.is_empty() {
+            stdout
+        } else if !stderr.is_empty() {
+            stderr
+        } else {
+            "work_step.py ist fehlgeschlagen (kein Ausgabetext)".to_string()
+        });
+    }
+
+    serde_json::from_str(&stdout).map_err(|e| format!("Unerwartete Ausgabe von work_step.py: {e}"))
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![create_work_item])
+        .invoke_handler(tauri::generate_handler![
+            create_work_item,
+            get_work_items,
+            resolve_repository_file,
+            set_work_item_context_refs,
+            submit_structured,
+            publish_work_step,
+            generate_work_step,
+            get_work_steps
+        ])
         .run(tauri::generate_context!())
         .expect("error while running Atlas Platform");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{atlas_python_at, repo_root, work_step_adapter};
+
+    #[test]
+    fn work_step_adapter_accepts_supported_providers() {
+        assert_eq!(
+            work_step_adapter("openai").unwrap(),
+            "THE WORKSHOPS/platform/openai_work_step.py"
+        );
+        assert_eq!(
+            work_step_adapter("anthropic").unwrap(),
+            "THE WORKSHOPS/platform/anthropic_work_step.py"
+        );
+        assert_eq!(
+            work_step_adapter("gemini").unwrap(),
+            "THE WORKSHOPS/platform/gemini_work_step.py"
+        );
+    }
+
+    #[test]
+    fn work_step_adapter_rejects_unknown_provider() {
+        assert_eq!(
+            work_step_adapter("unknown").unwrap_err(),
+            "Unbekannter WorkStep-Provider: unknown"
+        );
+    }
+
+    #[test]
+    fn atlas_python_uses_project_venv() {
+        let root = repo_root();
+        assert_eq!(
+            atlas_python_at(&root).unwrap(),
+            root.join(".venv").join("Scripts").join("python.exe")
+        );
+    }
+
+    #[test]
+    fn atlas_python_rejects_missing_venv() {
+        let missing_root = repo_root().join("does-not-exist");
+        let expected = missing_root
+            .join(".venv")
+            .join("Scripts")
+            .join("python.exe");
+
+        assert_eq!(
+            atlas_python_at(&missing_root).unwrap_err(),
+            format!("Atlas-Python nicht gefunden: {}", expected.display())
+        );
+    }
 }

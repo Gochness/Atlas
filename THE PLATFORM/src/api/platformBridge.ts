@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { WorkItem, WorkItemStatus } from "../types/platform";
+import type { WorkItem, WorkItemStatus, WorkStep } from "../types/platform";
 
 // Erster echter Schreibpfad der Plattform: ruft den Tauri-Command
 // create_work_item auf, der seinerseits das bestehende work_item.py als
@@ -12,6 +12,18 @@ interface CreateWorkItemResult {
   path: string;
 }
 
+interface PublishWorkStepResult {
+  id: string;
+  path: string;
+}
+
+export interface SubmitStructuredResult {
+  submissionId: string;
+  pullRequestUrl: string;
+}
+
+export type WorkStepProvider = "openai" | "anthropic" | "gemini";
+
 export async function createWorkItem(intent: string, createdBy: string): Promise<WorkItem> {
   const result = await invoke<CreateWorkItemResult>("create_work_item", {
     intent,
@@ -22,5 +34,61 @@ export async function createWorkItem(intent: string, createdBy: string): Promise
     intent,
     createdBy,
     status: result.status as WorkItemStatus,
+    contextRefs: [],
   };
+}
+
+export async function getWorkItems(): Promise<WorkItem[]> {
+  return invoke<WorkItem[]>("get_work_items");
+}
+
+export async function resolveRepositoryFile(filename: string): Promise<string[]> {
+  return invoke<string[]>("resolve_repository_file", { filename });
+}
+
+export async function setWorkItemContextRefs(
+  workItemId: string,
+  contextRefs: string[],
+): Promise<void> {
+  await invoke("set_work_item_context_refs", { workItemId, contextRefs });
+}
+
+export async function submitStructured(
+  data: Record<string, unknown>,
+): Promise<SubmitStructuredResult> {
+  return invoke<SubmitStructuredResult>("submit_structured", { data });
+}
+
+export async function publishWorkStep(
+  workItemId: string,
+  participantId: string,
+  content: string,
+): Promise<WorkStep> {
+  const result = await invoke<PublishWorkStepResult>("publish_work_step", {
+    workItemId,
+    participantId,
+    content,
+  });
+
+  return {
+    id: result.id,
+    workItemId,
+    participantId,
+    content,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+export async function getWorkSteps(workItemId: string): Promise<WorkStep[]> {
+  return invoke<WorkStep[]>("get_work_steps", { workItemId });
+}
+
+export async function generateWorkStep(
+  provider: WorkStepProvider,
+  workItemId: string,
+): Promise<PublishWorkStepResult> {
+  return invoke<PublishWorkStepResult>("generate_work_step", {
+    provider,
+    workItemId,
+  });
 }

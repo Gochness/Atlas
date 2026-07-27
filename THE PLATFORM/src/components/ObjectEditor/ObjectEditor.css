@@ -6,13 +6,13 @@
   margin: 0;
   font-size: 1.6rem;
   font-weight: 600;
-  color: #1c1c1e;
+  color: #c7cad6;
 }
 
 .object-editor-id {
   margin: 4px 0 0 0;
   font-size: 0.8rem;
-  color: #9a9a9e;
+  color: #6f7688;
 }
 
 .object-editor-fields {
@@ -34,16 +34,16 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #6b6b70;
+  color: #6f7688;
 }
 
 .object-editor-field-value {
   margin: 0;
   font-size: 0.95rem;
-  color: #1c1c1e;
+  color: #c7cad6;
   word-break: break-word;
 }
 
 .object-editor-field-empty {
-  color: #9a9a9e;
+  color: #6f7688;
 }

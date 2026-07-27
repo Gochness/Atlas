@@ -41,6 +41,7 @@ function parseWorkItemYaml(text: string): WorkItem | null {
     intent: fields.intent ?? "",
     createdBy: fields.created_by ?? "",
     status: fields.status as WorkItemStatus,
+    contextRefs: [],
   };
 }
 

@@ -2,16 +2,31 @@
    Die Breite des Object Explorers ist derzeit nicht durch die
    UX-Spezifikation festgelegt. */
 
+/* v0.4: Die in v0.2/v0.3 dokumentierte Einschraenkung (ObjectExplorer/
+   ContextInspector/ActivityStream bleiben hell, weil ihr Text fest auf
+   dunkel verdrahtet war) ist aufgehoben - dieser Auftrag erlaubt erstmals
+   Aenderungen an ObjectExplorer.css/ContextInspector.css/ActivityStream.css
+   selbst. Alle vier Raeume nutzen jetzt dieselbe dunkle Atlas-Palette:
+   Grundflaeche #12151c/#0d0f15, Text #c7cad6 (Inhalt) / #6f7688
+   (sekundaer/Label) / #b99a63 (Gold-Akzent fuer Kicker/Selektion) -
+   durchgaengig aus Workspace.css/Arbeitslage.css uebernommen, keine neue
+   Farbsprache erfunden. */
+
 .workspace-shell {
   display: flex;
   flex-direction: column;
   height: 100vh;
   width: 100vw;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #1c1c1e;
-  /* Ruhiger, warmer Hintergrund statt reinem Weiss/Grau - erzeugt eine
-     leise Ambiance statt einer neutralen Anwendungsflaeche. */
-  background: linear-gradient(180deg, #f6f5f2 0%, #efeeea 100%);
+  /* v0.5.1 Nachpruefung: Wurzelursache der gefundenen hellen Reststellen -
+     dieser geerbte Textfarbwert war seit v0.1 unveraendert #1c1c1e
+     (fast schwarz) geblieben. Jedes Element ohne eigene color-Regel (z. B.
+     das contextRefs-Formular) erbte dadurch weiterhin die alte helle
+     Textfarbe, unabhaengig davon, wie viele einzelne Komponenten in
+     v0.2-v0.5.1 explizit umgestellt wurden. Reine Farbaenderung, keine
+     Struktur-/Layoutaenderung. */
+  color: #c7cad6;
+  background: linear-gradient(180deg, #12141b 0%, #0d0f15 100%);
 }
 
 .workspace-main {
@@ -25,25 +40,275 @@
 .context-inspector {
   overflow-y: auto;
   padding: 16px;
-  background: #f1f0ec;
-  /* Weiche Tiefe statt harter Trennlinie: der Schatten faellt zur Mitte
-     hin ab, als laege der zentrale Workspace eine Ebene hoeher. */
+  /* Leicht abgesetzter Farbton gegenueber .workspace-content (#12151c) -
+     erzeugt eine ruhige, aber wahrnehmbare Raumgrenze ohne harte Linie. */
+  background: #14171f;
   position: relative;
 }
 
 .object-explorer {
-  box-shadow: inset -10px 0 14px -14px rgba(30, 27, 20, 0.18);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .context-inspector {
-  box-shadow: inset 10px 0 14px -14px rgba(30, 27, 20, 0.18);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .workspace-content {
   overflow-y: auto;
-  padding: 24px;
-  /* Warmes Off-White statt reinem Weiss. */
-  background: #fdfcfa;
+  padding: 22px clamp(24px, 4vw, 56px) 40px;
+  /* Ruhige, tiefe Atlas-Atmosphaere statt Dashboard-Weiss - siehe
+     Hinweis oben zum Geltungsbereich (nur zentraler Arbeitsraum). */
+  background:
+    radial-gradient(circle at 50% -12%, rgba(185, 154, 99, 0.08), transparent 38%),
+    #12151c;
+}
+
+/* v0.5: einmaliges, ruhiges Einblenden beim Wechsel des Work Items (die
+   Komponente wird per key={selectedId} in Workspace.tsx neu gemountet,
+   die Animation spielt dadurch genau einmal je Wechsel ab - keine
+   Wiederholung, kein Puls, keine Aktivitaetssimulation). */
+.workspace-room {
+  animation: workspace-room-fade-in 0.4s ease;
+}
+
+@keyframes workspace-room-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.workspace-focus {
+  padding: 0 0 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* v0.5, Zustand "completed": ausschliesslich der Gold-Akzent des
+   ID-Badges wird zu einem ruhigen Neutralton - kein Symbol, keine gruene
+   Flaeche, kein zusaetzlicher Text. Alle anderen Status (open,
+   in_progress, abandoned) bleiben unveraendert bei der Standarddarstellung
+   ("nur der belegte Status open" -> keine eigene Behandlung noetig). */
+.workspace-focus--completed .workspace-focus-id {
+  border-color: rgba(139, 144, 160, 0.4);
+  color: #b6bac6;
+  background: rgba(139, 144, 160, 0.08);
+}
+
+.workspace-focus-label,
+.shared-work-kicker {
+  margin: 0 0 8px;
+  color: #b99a63;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Kompakter Kopf (v0.3): ID und Status in einer Zeile, darunter der Intent
+   als ruhiger, auf zwei Zeilen begrenzter Fliesstext (line-clamp) - der
+   Kopf soll orientieren, nicht den groessten visuellen Anteil einnehmen
+   (das ist jetzt "Gemeinsame Arbeit", siehe unten). Keine Kuerzung/
+   Zusammenfassung des Textes selbst: der volle Intent steht unveraendert
+   im DOM und ist zusaetzlich als natives title-Attribut (Tooltip beim
+   Hover) erreichbar - keine neue Ableitung, nur eine Anzeigegrenze. */
+.workspace-focus-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.workspace-focus-id {
+  display: inline-block;
+  padding: 5px 10px;
+  border: 1px solid rgba(185, 154, 99, 0.4);
+  border-radius: 999px;
+  color: #d8c193;
+  background: rgba(185, 154, 99, 0.1);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.workspace-focus-status {
+  color: #8b90a0;
+  font-size: 0.78rem;
+}
+
+.workspace-focus-title {
+  max-width: 640px;
+  margin: 8px 0 0;
+  color: #c7cad6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.02rem;
+  font-weight: 500;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.workspace-focus-meta,
+.workspace-focus-empty > p:last-child {
+  margin: 10px 0 0;
+  color: #8b90a0;
+  font-size: 0.82rem;
+}
+
+.workspace-focus-empty h1 {
+  margin: 6px 0 0;
+  color: #e7e8ee;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.workspace-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0 22px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.workspace-toolbar-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workspace-toolbar button,
+.workspace-toolbar select {
+  min-height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #e2e4ea;
+}
+
+.workspace-toolbar button {
+  padding: 6px 11px;
+  cursor: pointer;
+}
+
+.workspace-toolbar button:hover {
+  border-color: rgba(185, 154, 99, 0.55);
+  background: rgba(185, 154, 99, 0.1);
+}
+
+.workspace-toolbar select {
+  padding: 5px 28px 5px 9px;
+}
+
+.workspace-model-controls label {
+  color: #8b90a0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.workspace-error {
+  color: #e2867c;
+}
+
+/* v0.3: "Gemeinsame Arbeit" traegt bewusst die groesste Ueberschrift und
+   den meisten Weissraum im zentralen Arbeitsraum - Kopf und Arbeitslage
+   wurden dafuer verkleinert (siehe oben/Arbeitslage.css). */
+.shared-work {
+  margin: 8px 0 32px;
+  padding-top: 4px;
+  border-top: 1px solid transparent;
+}
+
+/* v0.5, Zustand "mit WorkSteps": ein schmaler, gedaempfter oberer
+   Akzentstrich rueckt den Bereich sichtbar staerker in den Mittelpunkt,
+   sobald tatsaechlich Spuren vorhanden sind (workSteps.length > 0) - keine
+   Bewertung einzelner Beitraege, nur ob ueberhaupt welche existieren. */
+.shared-work--active {
+  border-top-color: rgba(185, 154, 99, 0.18);
+}
+
+.shared-work-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.shared-work-heading h2 {
+  margin: 0;
+  color: #f1f2f6;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.7rem;
+  font-weight: 500;
+}
+
+.shared-work-heading > span {
+  color: #6f7688;
+  font-size: 0.75rem;
+}
+
+.work-step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.work-step-card {
+  padding: 18px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-left: 3px solid #b99a63;
+  border-radius: 4px 10px 10px 4px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.work-step-meta {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #6f7688;
+  font-size: 0.72rem;
+}
+
+.work-step-meta strong {
+  color: #d8c193;
+  font-size: 0.78rem;
+}
+
+.work-step-card p {
+  margin: 9px 0 0;
+  color: #cdd0da;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+/* v0.5, Zustand "ohne WorkSteps": bewusst kein gestrichelter Rahmen mehr -
+   das ist die uebliche Konvention fuer "hier fehlt etwas"/Platzhalter und
+   widerspricht "wirkt ruhig und vollstaendig". Stattdessen derselbe
+   ruhige, durchgezogene Flaechenstil wie Werkzeugleiste/Arbeitslage. */
+.shared-work-empty {
+  margin: 0;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #6f7688;
+  text-align: center;
 }
 
 .activity-stream {
@@ -51,21 +316,59 @@
   height: 140px;
   overflow-y: auto;
   padding: 12px 24px;
-  background: #f1f0ec;
-  box-shadow: 0 -6px 12px -8px rgba(30, 27, 20, 0.16);
+  background: #14171f;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+/* Einheitlicher Kicker fuer alle vier Raeume - dieselbe Behandlung wie
+   "ARBEITSLAGE"/"WORKSTEPS" im zentralen Arbeitsraum, damit Object
+   Explorer, Context Inspector und Activity Stream sich sichtbar als Teile
+   desselben Raums lesen statt als separate helle Kacheln. */
 .placeholder-label {
   margin: 0 0 8px 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: #6b6b70;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #b99a63;
   text-transform: uppercase;
 }
 
 .empty-state {
   margin: 0;
   font-size: 0.9rem;
-  color: #9a9a9e;
+  color: #6f7688;
+}
+
+/* v0.5.1: reine Lesbarkeitskorrektur fuer die Repository-Datei-Suche -
+   dieser Abschnitt hatte bisher keine eigene Klasse und erbte
+   .workspace-shells helle-Oberflaeche-Textfarbe (#1c1c1e), die auf dem
+   seit v0.2 dunklen Hintergrund unlesbar war. Ausschliesslich ueber das
+   bereits vorhandene aria-label als Selektor angesprochen - keine
+   Aenderung an Workspace.tsx, kein neues Markup, keine neue Struktur. */
+section[aria-label="Repository-Datei suchen"] {
+  color: #c7cad6;
+}
+
+section[aria-label="Repository-Datei suchen"] label {
+  color: #6f7688;
+}
+
+/* Gleicher Fund, gleiche Ursache: das contextRefs-Bearbeitungsformular
+   (einziges <form> in .workspace-content, daher eindeutig ueber diesen
+   Selektor ansprechbar) hatte ebenfalls keine eigene Label-Farbe und erbte
+   bis eben denselben alten Wurzelwert. */
+.workspace-content form label {
+  color: #6f7688;
+}
+
+@media (max-width: 900px) {
+  .workspace-focus-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .workspace-toolbar {
+    align-items: stretch;
+  }
 }

@@ -1,6 +1,6 @@
-timestamp: 2026-07-25T17:27:07Z
-active: claude-code
-head: aab09c84206492c67a8e6164eed1624f001aed80
-focus: THE PLATFORM/ (React+TS+Vite+Tauri) - Workspace, ObjectExplorer, ActivityStream implementiert und verifiziert, Atmosphaeren-Pass gemergt (PR #15-18)
-next: Context Inspector implementieren; ObjectExplorer auf echte Mock-Daten umstellen; Tauri-Python-Bruecke v0.1 bauen; S-0011/ART-0009-Ueberarbeitung weiterhin ungeklaert
-status: in_progress
+timestamp: 2026-07-26T22:14:55Z
+active: codex
+head: 6a37550b871b48336d326c846ec5a92b5a4072e6
+focus: WI-0018 technisch abgeschlossen; kontrollierter IPC-Pfad bis zum Submission-Adapter bestaetigt
+next: keine Folgearbeit beschlossen; epistemische Bedeutung und Herleitung von base_commit bleiben offen
+status: completed

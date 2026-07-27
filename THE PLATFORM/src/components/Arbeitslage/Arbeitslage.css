@@ -1,0 +1,69 @@
+/* v0.3: Arbeitslage als schmaler Orientierungsstreifen statt Karte -
+   kaum sichtbare Umrandung, wenig Innenabstand, alle Felder auf zwei
+   Zeilen begrenzt (line-clamp), damit auch ein langer Intent- oder
+   Beitragstext die Flaeche nicht ausdehnt. Inhalte unveraendert (dieselben
+   sechs Felder aus Arbeitslage.tsx), nur Darstellung kompakter. */
+.arbeitslage {
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.arbeitslage-title {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a7550;
+  margin: 0 0 8px;
+}
+
+.arbeitslage-fields {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(120px, 1fr));
+  gap: 6px 18px;
+}
+
+.arbeitslage-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.arbeitslage-field-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6f7688;
+}
+
+.arbeitslage-field-value {
+  margin: 0;
+  font-size: 0.76rem;
+  color: #aeb2c0;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.arbeitslage-field-empty {
+  color: #6f7688;
+}
+
+@media (max-width: 1100px) {
+  .arbeitslage-fields {
+    grid-template-columns: repeat(3, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .arbeitslage-fields {
+    grid-template-columns: repeat(2, minmax(130px, 1fr));
+  }
+}
