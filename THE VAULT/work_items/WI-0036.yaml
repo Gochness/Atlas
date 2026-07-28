@@ -1,0 +1,37 @@
+id: WI-0036
+intent: 'Untersuche den aktuellen Atlas-Wissensraum und die bestehende Plattformimplementierung.
+
+
+  Beantworte folgende Frage:
+
+
+  Welche drei konkreten Schwächen der aktuellen Atlas-Plattform behindern derzeit
+  am stärksten das Ziel, dass mehrere KI-Teilnehmer zuverlässig und möglichst selbstständig
+  gemeinsam an Atlas arbeiten können?
+
+
+  Für jede Schwäche:
+
+
+  - beschreibe den belegten aktuellen Zustand,
+
+  - nenne die relevanten Atlas-Quellen oder Implementierungsstellen,
+
+  - erkläre die konkrete Auswirkung auf die gemeinsame Arbeit,
+
+  - schlage die kleinste sinnvolle Verbesserung vor.
+
+
+  Trenne belegte Tatsachen klar von Schlussfolgerungen.
+
+
+  Priorisiere die drei Schwächen nach ihrer praktischen Bedeutung.
+
+
+  Beende die Untersuchung, sobald genügend Evidenz für eine belastbare Antwort vorliegt.
+  Eine vollständige Sichtung des gesamten Repositorys ist nicht erforderlich.'
+created_by: enesh
+created_at: '2026-07-28T19:17:40Z'
+base_commit: e86fd996069b01c932bda61ddfcefa309055d4a2
+status: open
+context_refs: []

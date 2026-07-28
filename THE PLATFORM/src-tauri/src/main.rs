@@ -22,6 +22,91 @@ struct PublishWorkStepResult {
     path: String,
 }
 
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
+struct OrchestrationParticipantResult {
+    provider: String,
+    phase: String,
+    status: String,
+    #[serde(default)]
+    work_step_id: Option<String>,
+    #[serde(default)]
+    participant_id: Option<String>,
+    #[serde(default)]
+    error: Option<String>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
+struct WorkOrchestrationResult {
+    success: bool,
+    mode: String,
+    participants: Vec<String>,
+    starting_snapshot_ids: Vec<String>,
+    results: Vec<OrchestrationParticipantResult>,
+    #[serde(default)]
+    error: Option<String>,
+    #[serde(default)]
+    run_id: Option<String>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
+struct WorkOrchestrationStatus {
+    state: String,
+    mode: String,
+    phase: String,
+    message: String,
+    work_item_id: String,
+    participants: Vec<String>,
+    starting_snapshot_ids: Vec<String>,
+    results: Vec<OrchestrationParticipantResult>,
+    #[serde(default)]
+    run_id: Option<String>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
+struct IndependentParticipantState {
+    provider: String,
+    status: String,
+    #[serde(default)]
+    participant_id: Option<String>,
+    #[serde(default)]
+    error: Option<String>,
+    #[serde(default)]
+    work_step_id: Option<String>,
+    attempt_count: u32,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
+struct IndependentRun {
+    schema_version: u32,
+    run_id: String,
+    work_item_id: String,
+    mode: String,
+    participants: Vec<String>,
+    status: String,
+    created_at: String,
+    updated_at: String,
+    participant_states: Vec<IndependentParticipantState>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all(serialize = "camelCase", deserialize = "snake_case"))]
+struct IndependentRetryResult {
+    success: bool,
+    run_id: String,
+    work_item_id: String,
+    mode: String,
+    retried_provider: String,
+    status: String,
+    participant_states: Vec<IndependentParticipantState>,
+    #[serde(default)]
+    error: Option<String>,
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct SubmitStructuredResult {
@@ -74,11 +159,38 @@ fn atlas_python_at(repo_root: &Path) -> Result<PathBuf, String> {
     Ok(python)
 }
 
+// Windows haengt neu gestarteten Konsolenprozessen (python.exe) sonst ein
+// eigenes, sichtbar aufblinkendes Konsolenfenster an, auch wenn die
+// GUI-App selbst keins hat (siehe windows_subsystem oben). CREATE_NO_WINDOW
+// unterdrueckt nur dieses Fenster - stdout/stderr werden weiterhin ueber
+// .output() eingesammelt, Fehlerdiagnose bleibt unveraendert erhalten.
+fn python_command(python: &Path) -> Command {
+    let mut command = Command::new(python);
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+    command
+}
+
+// created_by ist Erstelleridentitaet, kein Aufgabenfeld (siehe Kommentar
+// oben in Workspace.tsx zum WI-0020-Fehlzustand) - der Wert wird deshalb
+// nicht vom Benutzer abgefragt, sondern von Atlas selbst aus dem
+// angemeldeten Windows-Benutzerkonto bestimmt (USERNAME ist auf jedem
+// Windows-System gesetzt; Fallback nur fuer den unwahrscheinlichen Fall,
+// dass die Variable fehlt).
+fn current_os_user() -> String {
+    std::env::var("USERNAME").unwrap_or_else(|_| "atlas-desktop".to_string())
+}
+
 #[tauri::command]
-fn create_work_item(intent: String, created_by: String) -> Result<CreateWorkItemResult, String> {
+fn create_work_item(intent: String) -> Result<CreateWorkItemResult, String> {
     let repo_root = repo_root();
     let python = atlas_python_at(&repo_root)?;
-    let output = Command::new(python)
+    let created_by = current_os_user();
+    let output = python_command(&python)
         .arg("THE WORKSHOPS/platform/work_item.py")
         .arg("start")
         .arg("--by")
@@ -121,7 +233,7 @@ fn create_work_item(intent: String, created_by: String) -> Result<CreateWorkItem
 fn get_work_items() -> Result<Vec<WorkItem>, String> {
     let repo_root = repo_root();
     let python = atlas_python_at(&repo_root)?;
-    let output = Command::new(python)
+    let output = python_command(&python)
         .arg("THE WORKSHOPS/platform/work_item.py")
         .arg("list")
         .current_dir(repo_root)
@@ -148,7 +260,7 @@ fn get_work_items() -> Result<Vec<WorkItem>, String> {
 fn resolve_repository_file(filename: String) -> Result<Vec<String>, String> {
     let repo_root = repo_root();
     let python = atlas_python_at(&repo_root)?;
-    let output = Command::new(python)
+    let output = python_command(&python)
         .arg("THE WORKSHOPS/platform/work_item.py")
         .arg("resolve-file")
         .arg(&filename)
@@ -181,7 +293,7 @@ fn set_work_item_context_refs(
     let python = atlas_python_at(&repo_root)?;
     let context_refs_json = serde_json::to_string(&context_refs)
         .map_err(|e| format!("context_refs konnten nicht serialisiert werden: {e}"))?;
-    let output = Command::new(python)
+    let output = python_command(&python)
         .arg("THE WORKSHOPS/platform/work_item.py")
         .arg("set-context-refs")
         .arg(&work_item_id)
@@ -225,7 +337,7 @@ fn submit_structured(data: serde_json::Value) -> Result<SubmitStructuredResult, 
     let data_json = serde_json::to_string(&data)
         .map_err(|e| format!("Submission-Daten konnten nicht serialisiert werden: {e}"))?;
     let script = "THE WORKSHOPS/platform/submit_structured.py";
-    let output = Command::new(python)
+    let output = python_command(&python)
         .arg(script)
         .arg(data_json)
         .current_dir(repo_root)
@@ -268,7 +380,7 @@ fn publish_work_step(
 ) -> Result<PublishWorkStepResult, String> {
     let repo_root = repo_root();
     let python = atlas_python_at(&repo_root)?;
-    let output = Command::new(python)
+    let output = python_command(&python)
         .arg("THE WORKSHOPS/platform/work_step.py")
         .arg("publish")
         .arg("--work-item")
@@ -325,7 +437,7 @@ fn generate_work_step(
     let script = work_step_adapter(&provider)?;
     let repo_root = repo_root();
     let python = atlas_python_at(&repo_root)?;
-    let output = Command::new(python)
+    let output = python_command(&python)
         .arg(script)
         .arg("generate")
         .arg("--work-item")
@@ -362,11 +474,162 @@ fn generate_work_step(
     })
 }
 
+fn orchestration_status_path() -> PathBuf {
+    std::env::temp_dir().join("atlas-orchestration-v1-status.json")
+}
+
+fn retry_independent_args(run_id: &str, provider: &str) -> Vec<String> {
+    vec![
+        "THE WORKSHOPS/platform/work_orchestration.py".to_string(),
+        "retry-independent".to_string(),
+        "--run-id".to_string(),
+        run_id.to_string(),
+        "--provider".to_string(),
+        provider.to_string(),
+    ]
+}
+
+fn run_independent_python<T>(arguments: Vec<String>, operation: &str) -> Result<T, String>
+where
+    T: for<'de> Deserialize<'de>,
+{
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let output = python_command(&python)
+        .args(arguments)
+        .current_dir(repo_root)
+        .output()
+        .map_err(|e| format!("{operation} konnte nicht gestartet werden: {e}"))?;
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+    if !output.status.success() {
+        return Err(if !stderr.is_empty() {
+            stderr
+        } else if !stdout.is_empty() {
+            stdout
+        } else {
+            format!("{operation} ist fehlgeschlagen (kein Ausgabetext)")
+        });
+    }
+    serde_json::from_str(&stdout)
+        .map_err(|e| format!("Unerwartete Ausgabe von {operation}: {e}: {stdout}"))
+}
+
+fn run_work_orchestration(
+    work_item_id: String,
+    mode: String,
+    participants: Vec<String>,
+) -> Result<WorkOrchestrationResult, String> {
+    let repo_root = repo_root();
+    let python = atlas_python_at(&repo_root)?;
+    let status_path = orchestration_status_path();
+    if status_path.exists() {
+        std::fs::remove_file(&status_path).map_err(|e| {
+            format!("Alter Orchestrierungsstatus konnte nicht entfernt werden: {e}")
+        })?;
+    }
+
+    let output = python_command(&python)
+        .arg("THE WORKSHOPS/platform/work_orchestration.py")
+        .arg("run")
+        .arg("--work-item")
+        .arg(&work_item_id)
+        .arg("--mode")
+        .arg(&mode)
+        .arg("--participants")
+        .arg(participants.join(","))
+        .arg("--status-file")
+        .arg(&status_path)
+        .current_dir(repo_root)
+        .output()
+        .map_err(|e| format!("work_orchestration.py konnte nicht gestartet werden: {e}"))?;
+
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+    if stdout.is_empty() {
+        return Err(if !stderr.is_empty() {
+            stderr
+        } else {
+            "work_orchestration.py lieferte kein Ergebnis".to_string()
+        });
+    }
+
+    serde_json::from_str(&stdout)
+        .map_err(|e| format!("Unerwartete Ausgabe von work_orchestration.py: {e}: {stdout}"))
+}
+
+#[tauri::command]
+async fn retry_independent_participant(
+    run_id: String,
+    provider: String,
+) -> Result<IndependentRetryResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        run_independent_python(
+            retry_independent_args(&run_id, &provider),
+            "Independent-Retry",
+        )
+    })
+    .await
+    .map_err(|e| format!("Independent-Retry-Prozess ist fehlgeschlagen: {e}"))?
+}
+
+#[tauri::command]
+fn get_independent_run(run_id: String) -> Result<IndependentRun, String> {
+    run_independent_python(
+        vec![
+            "THE WORKSHOPS/platform/work_orchestration.py".to_string(),
+            "get-independent-run".to_string(),
+            "--run-id".to_string(),
+            run_id,
+        ],
+        "IndependentRun-Lesen",
+    )
+}
+
+#[tauri::command]
+fn find_incomplete_independent_run(work_item_id: String) -> Result<Option<IndependentRun>, String> {
+    run_independent_python(
+        vec![
+            "THE WORKSHOPS/platform/work_orchestration.py".to_string(),
+            "find-incomplete-independent-run".to_string(),
+            "--work-item".to_string(),
+            work_item_id,
+        ],
+        "IndependentRun-Suche",
+    )
+}
+
+#[tauri::command]
+async fn start_work_orchestration(
+    work_item_id: String,
+    mode: String,
+    participants: Vec<String>,
+) -> Result<WorkOrchestrationResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        run_work_orchestration(work_item_id, mode, participants)
+    })
+    .await
+    .map_err(|e| format!("Orchestrierungsprozess ist fehlgeschlagen: {e}"))?
+}
+
+#[tauri::command]
+fn get_work_orchestration_status() -> Result<Option<WorkOrchestrationStatus>, String> {
+    let path = orchestration_status_path();
+    if !path.exists() {
+        return Ok(None);
+    }
+    let content = std::fs::read_to_string(&path)
+        .map_err(|e| format!("Orchestrierungsstatus konnte nicht gelesen werden: {e}"))?;
+    serde_json::from_str(&content)
+        .map(Some)
+        .map_err(|e| format!("Ungueltiger Orchestrierungsstatus: {e}"))
+}
+
 #[tauri::command]
 fn get_work_steps(work_item_id: String) -> Result<Vec<WorkStep>, String> {
     let repo_root = repo_root();
     let python = atlas_python_at(&repo_root)?;
-    let output = Command::new(python)
+    let output = python_command(&python)
         .arg("THE WORKSHOPS/platform/work_step.py")
         .arg("list")
         .arg("--work-item")
@@ -401,6 +664,11 @@ fn main() {
             submit_structured,
             publish_work_step,
             generate_work_step,
+            start_work_orchestration,
+            retry_independent_participant,
+            get_independent_run,
+            find_incomplete_independent_run,
+            get_work_orchestration_status,
             get_work_steps
         ])
         .run(tauri::generate_context!())
@@ -409,7 +677,10 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use super::{atlas_python_at, repo_root, work_step_adapter};
+    use super::{
+        atlas_python_at, repo_root, retry_independent_args, work_step_adapter,
+        IndependentRetryResult,
+    };
 
     #[test]
     fn work_step_adapter_accepts_supported_providers() {
@@ -456,5 +727,56 @@ mod tests {
             atlas_python_at(&missing_root).unwrap_err(),
             format!("Atlas-Python nicht gefunden: {}", expected.display())
         );
+    }
+
+    #[test]
+    fn retry_independent_args_pass_run_and_provider() {
+        assert_eq!(
+            retry_independent_args("abc123", "gemini"),
+            vec![
+                "THE WORKSHOPS/platform/work_orchestration.py",
+                "retry-independent",
+                "--run-id",
+                "abc123",
+                "--provider",
+                "gemini",
+            ]
+        );
+    }
+
+    #[test]
+    fn retry_result_transports_structured_state_and_error() {
+        let result: IndependentRetryResult = serde_json::from_str(
+            r#"{
+                "success": false,
+                "run_id": "abc123",
+                "work_item_id": "WI-0001",
+                "mode": "independent",
+                "retried_provider": "gemini",
+                "status": "incomplete",
+                "participant_states": [{
+                    "provider": "gemini",
+                    "status": "failed",
+                    "participant_id": null,
+                    "content": "bleibt nur im Python-Betriebszustand",
+                    "error": "HTTP 503",
+                    "work_step_id": null,
+                    "attempt_count": 2
+                }],
+                "error": "HTTP 503"
+            }"#,
+        )
+        .unwrap();
+
+        assert_eq!(result.run_id, "abc123");
+        assert_eq!(result.retried_provider, "gemini");
+        assert_eq!(result.participant_states[0].status, "failed");
+        assert_eq!(
+            result.participant_states[0].error.as_deref(),
+            Some("HTTP 503")
+        );
+        assert_eq!(result.error.as_deref(), Some("HTTP 503"));
+        let ui_json = serde_json::to_value(result).unwrap();
+        assert!(ui_json["participantStates"][0].get("content").is_none());
     }
 }

@@ -1,0 +1,128 @@
+id: WS-0080
+work_item_id: WI-0036
+participant_id: gemini:gemini-3-flash-preview
+content: 'Die Untersuchung des Atlas-Wissensraums und der aktuellen Implementierung
+  identifiziert drei zentrale Schwächen, die die zuverlässige und selbstständige Zusammenarbeit
+  mehrerer KI-Teilnehmer behindern.
+
+
+  ### 1. Globale Serialisierung durch den WARP-Prozess (Prozess-Ebene)
+
+
+  *   **Belegter aktueller Zustand:** Der WARP-Prozess ist als plattformweite "Stop-the-World"-Operation
+  definiert. Laut `WARP_STATE_MACHINE.md` (Zustand `WARP_STARTED`) darf ab Beginn
+  einer Materialisierung "keine neue Entwicklung" mehr gestartet werden. `WARP.md`
+  bekräftigt: "From this moment onward, no new ideas are developed until materialization
+  is complete."
+
+  *   **Relevante Quellen:** `THE NORTH STAR/WARP.md`, `THE NORTH STAR/WARP_STATE_MACHINE.md`.
+
+  *   **Konkrete Auswirkung:** Wenn Teilnehmer A seine Arbeit abschließt und einen
+  WARP einleitet, werden alle anderen Teilnehmer (B, C, ...) faktisch und prozessual
+  blockiert, auch wenn sie an völlig unabhängigen Work Items arbeiten. Dies verhindert
+  parallele Fortschritte und skaliert nicht mit der Anzahl der Bewohner.
+
+  *   **Kleinste sinnvolle Verbesserung:** Einführung eines **Scoped WARP**. Der Sperrzustand
+  sollte sich nur auf die vom jeweiligen Work Item betroffenen Dokumente oder einen
+  spezifischen Branch beziehen, während der Rest der Plattform im Zustand `LIVE` bleibt.
+
+
+  ### 2. Engpass durch Singleton-Zustandsdateien (Kontext-Ebene)
+
+
+  *   **Belegter aktueller Zustand:** Der `Development Workflow.md` schreibt vor,
+  dass jede Aufgabe zwingend mit der Prüfung und am Ende mit der Aktualisierung von
+  `SESSION.md` und `PROJECT_STATE.md` an ihren festen Pfaden im Kernverzeichnis erfolgt.
+  Die Datei `SESSION.md` führt zudem nur ein einziges globales `Objective` und eine
+  `Next Action`.
+
+  *   **Relevante Quellen:** `THE NORTH STAR/Development Workflow.md`, `THE NORTH
+  STAR/SESSION.md`.
+
+  *   **Konkrete Auswirkung:** Da alle Teilnehmer dieselben zwei Dateien für ihre
+  Ablaufsteuerung nutzen müssen, entstehen bei paralleler Arbeit zwangsläufig Git-Merge-Konflikte.
+  Es gibt keinen Mechanismus, um mehrere unabhängige Sitzungskontexte (Sessions) gleichzeitig
+  im Repository zu führen.
+
+  *   **Kleinste sinnvolle Verbesserung:** Umstellung auf **Multi-Session-Dateien**.
+  Jeder Teilnehmer oder jedes Work Item erhält eine eigene Session-Datei (z. B. in
+  `THE VAULT/sessions/WI-XXXX.yaml`), die den individuellen Fortschritt unabhängig
+  vom globalen Status trackt.
+
+
+  ### 3. Fehlende Aufgabenreservierung und Concurrency Control (Koordinations-Ebene)
+
+
+  *   **Belegter aktueller Zustand:** Die Implementierung von `work_item.py` unterstützt
+  nur die Zustände `open`, `completed` und `abandoned`. Es existiert weder ein Status
+  `in_progress` noch ein Feld zur Zuweisung (`assigned_to`) an einen Teilnehmer. Zudem
+  berechnet `_next_id()` die nächste ID rein lokal auf Basis der im Dateisystem sichtbaren
+  Dateien (`max(existing) + 1`).
+
+  *   **Relevante Quellen:** `THE WORKSHOPS/platform/work_item.py`.
+
+  *   **Konkrete Auswirkung:** KI-Teilnehmer können nicht zuverlässig erkennen, ob
+  ein "offenes" Work Item bereits in Bearbeitung ist. Dies führt zu Doppelarbeit und
+  Ressourcenverschwendung. Zudem besteht ein hohes Risiko von ID-Kollisionen (zwei
+  Teilnehmer erstellen zeitgleich unterschiedliche Work Items mit derselben Nummer),
+  was erst beim Merge zu Fehlern führt.
+
+  *   **Kleinste sinnvolle Verbesserung:** Erweiterung des Work-Item-Schemas um die
+  Felder **`status: in_progress`** und **`assigned_to`**. Ein Teilnehmer muss das
+  Work Item reservieren, bevor er mit der Untersuchung beginnt.
+
+
+  ---
+
+
+  ### Priorisierung nach praktischer Bedeutung
+
+
+  1.  **Singleton-Zustandsdateien (Schwäche 2):** Dies ist die kritischste technische
+  Blockade, da sie sofort zu Git-Konflikten führt und somit paralleles Arbeiten auf
+  Dateiebene physisch verhindert.
+
+  2.  **Globale WARP-Sperre (Schwäche 1):** Diese Schwäche verhindert die logische
+  Skalierung der Plattform und erzwingt eine ineffiziente, rein sequentielle Arbeitsweise
+  aller Teilnehmer.
+
+  3.  **Fehlende Reservierung (Schwäche 3):** Führt zu logischen Inkonsistenzen und
+  redundanter Arbeit; die ID-Kollisionen erschweren zudem die spätere Integration
+  von Ergebnissen.
+
+
+  **Hinweis zur Beweislage:** Die Feststellungen basieren direkt auf dem vorliegenden
+  Quellcode der Plattform-Werkzeuge und der im Wissensraum hinterlegten Prozessdokumentation
+  (v1.0). Die Schlussfolgerungen zur "Behinderung" ergeben sich aus der logischen
+  Unvereinbarkeit dieser (derzeit serialisierten) Mechanismen mit dem Ziel paralleler,
+  unabhängiger KI-Interaktionen.
+
+
+  ---
+
+  Technisch nachgewiesen gelesene Atlas-Quellen waehrend dieser Untersuchung:
+
+  - THE NORTH STAR/PROJECT_STATE.md (dokumentation)
+
+  - THE NORTH STAR/PLATFORM_STATUS.md (dokumentation)
+
+  - THE NORTH STAR/Development Workflow.md (dokumentation)
+
+  - THE VAULT/handoff/current.yaml (projekt_status)
+
+  - THE NORTH STAR/WARP.md (dokumentation)
+
+  - THE NORTH STAR/WARP_STATE_MACHINE.md (dokumentation)
+
+  - THE NORTH STAR/SESSION.md (dokumentation)
+
+  - THE NORTH STAR/APA-001_v0.1.md (dokumentation)
+
+  - THE WORKSHOPS/platform/tests/test_work_orchestration.py (implementierung)
+
+  - THE VAULT/work_items/WI-0036.yaml (work_item)
+
+  - THE NORTH STAR/NATURAL_LAWS.md (dokumentation)
+
+  - THE WORKSHOPS/platform/work_item.py (implementierung)'
+created_at: '2026-07-28T20:38:45Z'

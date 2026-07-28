@@ -36,7 +36,7 @@ class GeminiWorkStepTests(unittest.TestCase):
             openai_work_step._build_context,
         )
 
-    def test_instructions_match_openai_wire_prompt_word_for_word(self):
+    def test_openai_wire_prompt_uses_openai_specific_instructions(self):
         response = io.BytesIO(
             json.dumps(
                 {
@@ -65,7 +65,7 @@ class GeminiWorkStepTests(unittest.TestCase):
 
         payload = json.loads(captured["request"].data.decode("utf-8"))
         self.assertEqual(
-            gemini_work_step.MODEL_INSTRUCTIONS,
+            openai_work_step._INSTRUCTIONS,
             payload["instructions"],
         )
 
@@ -103,7 +103,10 @@ class GeminiWorkStepTests(unittest.TestCase):
             )
 
         self.assertEqual(text, "Erster Teil\nZweiter Teil")
-        self.assertEqual(captured["timeout"], 60)
+        self.assertEqual(
+            captured["timeout"],
+            gemini_work_step.REQUEST_TIMEOUT_SECONDS,
+        )
         self.assertTrue(
             captured["request"].full_url.endswith(
                 "/gemini-test%2Fmodel:generateContent"

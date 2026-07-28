@@ -33,6 +33,26 @@ def test_build_context_includes_valid_context_file(tmp_path):
             "content": "Belegter Dateiinhalt",
         }
     ]
+    assert "Automatischer Atlas-Wissensindex" in context["atlas_knowledge_index"]
+
+
+def test_build_context_provides_current_compact_index_before_first_tool_call(tmp_path):
+    source = tmp_path / "THE NORTH STAR" / "PLATFORM_STATUS.md"
+    source.parent.mkdir(parents=True)
+    source.write_text("# Platform Status\nAktueller Atlas-Stand", encoding="utf-8")
+
+    context = json.loads(
+        openai_work_step._build_context(
+            {"id": "WI-0001", "intent": "Status untersuchen", "context_refs": []},
+            [],
+            repo_root=tmp_path,
+        )
+    )
+
+    index = context["atlas_knowledge_index"]
+    assert "dokumentation=1" in index
+    assert "THE NORTH STAR/PLATFORM_STATUS.md" in index
+    assert "Aktueller Atlas-Stand" not in index
 
 
 def test_read_old_work_item_defaults_context_refs_to_empty(tmp_path, monkeypatch):

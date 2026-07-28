@@ -1,0 +1,111 @@
+id: WS-0078
+work_item_id: WI-0036
+participant_id: openai:gpt-5
+content: "Zwischenstand WI-0036 – Drei vorrangige Plattform-Schwächen für verlässliche,\
+  \ möglichst selbstständige Mehrteilnehmer-Arbeit (priorisiert)\n\n1) Keine Identitäts-/Berechtigungsgrundlage\
+  \ für Teilnehmeraktionen\n- Belegter aktueller Zustand\n  - Die Platform API v1\
+  \ schließt ausdrücklich aus: „Authentifizierung oder Autorisierung“ und „Echtzeit-Presence“\
+  \ (THE NORTH STAR/PLATFORM_API_v1.md, Abschnitt 6 – Nicht Bestandteil der API).\n\
+  \  - Manuelles Veröffentlichen von WorkSteps fordert die Teilnehmer-ID als freies\
+  \ Texteingabefeld per window.prompt() ab; es gibt keine Validierung gegen eine bekannte\
+  \ Teilnehmerliste (THE PLATFORM/src/components/Workspace/Workspace.tsx, Funktion\
+  \ handlePublishWorkStep).\n  - created_by für Work Items wird lokal aus dem OS-Benutzer\
+  \ (Windows USERNAME) abgeleitet; kein Auth-Nachweis oder zentrale Identitätsquelle\
+  \ (THE PLATFORM/src-tauri/src/main.rs, current_os_user(); THE WORKSHOPS/platform/work_item.py\
+  \ verwendet created_by nur als freies Feld).\n- Relevante Quellen/Implementierungsstellen\n\
+  \  - THE NORTH STAR/PLATFORM_API_v1.md (Abschnitt 6: Nicht Bestandteil der API)\n\
+  \  - THE PLATFORM/src/components/Workspace/Workspace.tsx (handlePublishWorkStep;\
+  \ Kommentare zur Erfassung von created_by/intent)\n  - THE PLATFORM/src-tauri/src/main.rs\
+  \ (current_os_user)\n  - THE WORKSHOPS/platform/work_item.py (Dateiformat/created_by)\n\
+  - Konkrete Auswirkung (Schlussfolgerung)\n  - Ohne verlässliche Identitäten können\
+  \ Beiträge nicht sicher einer Instanz zugeordnet werden; Verwechslungen und Spoofing\
+  \ sind möglich. Automatisierte Agenten lassen sich nicht sauber voneinander trennen\
+  \ (Auditierbarkeit, Verantwortlichkeit, gezielte Sperren/Erlaubnisse fehlen). Das\
+  \ erschwert zuverlässiges, selbstständiges paralleles Arbeiten.\n- Kleinste sinnvolle\
+  \ Verbesserung (Schlussfolgerung)\n  - Minimale, nicht-intrusive Teilnehmerverwaltung\
+  \ einführen:\n    - Eine kanonische participants-Liste im Repository (z. B. THE\
+  \ VAULT/participants.yaml) mit erlaubten Kennungen und optionalen Aliassen.\n  \
+  \  - UI: Teilnehmerauswahl beim Veröffentlichen auf Einträge aus participants.yaml\
+  \ begrenzen (Dropdown), Freitext nur als „Andere …“ mit Warnhinweis.\n    - Adapter\
+  \ setzen weiterhin deterministische Kennungen (z. B. openai:<MODEL>) automatisch.\n\
+  \  - Diese Änderung erfordert keine umfassende Auth-Infra und verbessert sofort\
+  \ Konsistenz und Nachvollziehbarkeit.\n\n2) Keine Zuweisung/Sperre und kein „in_progress“-Status\
+  \ für Work Items; keine Presence/Koordination\n- Belegter aktueller Zustand\n  -\
+  \ Platform API v1: Echtzeit-Presence ist nicht Bestandteil der API (THE NORTH STAR/PLATFORM_API_v1.md,\
+  \ Abschnitt 6).\n  - work_item.py legt explizit fest: „Es gibt aktuell keinen Befehl,\
+  \ der in_progress setzt; ein Work Item geht direkt von open zu completed oder abandoned\
+  \ über.“ (THE WORKSHOPS/platform/work_item.py, Kopfkommentar).\n  - Die UX/Frontend-Architektur\
+  \ sieht „aktive Instanzen“ bzw. Teilnehmerstatus vor (PLATFORM_UX_v1.md: „Teilnehmerstatus\
+  \ (dezent)“, „aktive Instanzen“; PLATFORM_FRONTEND_ARCHITECTURE_v1.md: Workspace\
+  \ hält „aktive Instanzen“), es gibt aber keine belegte Implementierung auf API-Ebene.\n\
+  - Relevante Quellen/Implementierungsstellen\n  - THE NORTH STAR/PLATFORM_API_v1.md\
+  \ (Abschnitt 6)\n  - THE WORKSHOPS/platform/work_item.py (Statusmodell und fehlendes\
+  \ in_progress)\n  - THE NORTH STAR/PLATFORM_UX_v1.md; THE NORTH STAR/PLATFORM_FRONTEND_ARCHITECTURE_v1.md\
+  \ (Soll-Bild mit aktiven Instanzen)\n- Konkrete Auswirkung (Schlussfolgerung)\n\
+  \  - Mehrere KI-Teilnehmer können gleichzeitig am selben Work Item starten, ohne\
+  \ sichtbare Reservierung oder „Besitz“. Das führt zu Doppelarbeit, unklarer Zuständigkeit\
+  \ und potenziell widersprüchlichen Zwischenständen. Ohne Presence/Koordination fehlt\
+  \ die Minimal-Signalisierung „wer arbeitet gerade woran“.\n- Kleinste sinnvolle\
+  \ Verbesserung (Schlussfolgerung)\n  - Leichtgewichtige Claim/Sperr-Konvention für\
+  \ Work Items:\n    - Minimalvariante: optionales Feld assigned_to in der WI-XXXX.yaml\
+  \ plus Befehle in work_item.py: assign/unassign (best-effort, nur offen änderbar).\
+  \ UI zeigt „Zugewiesen an …“.\n    - Alternativ ohne Schemaeingriff: atomare Lock-Datei\
+  \ THE VAULT/locks/WI-XXXX.lock (Inhalt: participant_id, timestamp). UI zeigt „gesperrt\
+  \ von …“. Lösbar per unlock-Command.\n  - Beide Optionen sind klein, lokal und sofort\
+  \ wirksam; Presence in Echtzeit bleibt weiterhin optional.\n\n3) Orchestrierungszustand\
+  \ ist lokal und nicht als gemeinsamer Plattformzustand sichtbar/teilbar\n- Belegter\
+  \ aktueller Zustand\n  - Independent-Run-Status wird bewusst außerhalb des Repos\
+  \ (LOCALAPPDATA/Atlas/independent-runs) persistiert; „keine WorkSteps und kein fachliches\
+  \ Atlas-Wissen“ (THE WORKSHOPS/platform/independent_run.py, Kopftext; default_runs_dir()).\n\
+  \  - Der laufende Orchestrierungsstatus wird in eine temporäre JSON-Datei im System-Temp-Verzeichnis\
+  \ geschrieben (atlas-orchestration-v1-status.json) (THE PLATFORM/src-tauri/src/main.rs,\
+  \ orchestration_status_path(), get_work_orchestration_status()).\n  - Es gibt keine\
+  \ API-Operation in Platform API v1, die diesen technischen Orchestrierungszustand\
+  \ als Teil des Workspace State bereitstellt; in der Frontend-Bridge existiert ebenfalls\
+  \ keine global get_workspace_state-Funktion, die Orchestrierung integriert (THE\
+  \ NORTH STAR/PLATFORM_API_v1.md: get_workspace_state ist spezifiziert, aber Orchestrierungsstatus\
+  \ ist dort nicht erwähnt; THE PLATFORM/src/api/platformBridge.ts bietet getWorkItems/getWorkSteps,\
+  \ aber keinen gemeinsam geteilten Orchestrierungskontext).\n- Relevante Quellen/Implementierungsstellen\n\
+  \  - THE WORKSHOPS/platform/independent_run.py (Persistenz außerhalb des Repos)\n\
+  \  - THE PLATFORM/src-tauri/src/main.rs (orchestration_status_path, get_work_orchestration_status)\n\
+  \  - THE NORTH STAR/PLATFORM_API_v1.md (kein Presence/kein technischer Laufzeitstatus;\
+  \ get_workspace_state ohne Orchestrierung)\n  - THE PLATFORM/src/api/platformBridge.ts\
+  \ (keine gemeinsame, persistente Orchestrierungsprojektion)\n- Konkrete Auswirkung\
+  \ (Schlussfolgerung)\n  - Der Fortschritt/Fehlschlag verteilter Läufe ist für andere\
+  \ Teilnehmer nicht sichtbar, sofern sie nicht exakt denselben Client/Host verwenden.\
+  \ Zusammenarbeit wird unzuverlässig: Wiederaufnahmen, Retries und Abbruchgründe\
+  \ sind nicht plattformweit transparent, wodurch autonome Mehrteilnehmer-Läufe schwer\
+  \ zu koordinieren sind.\n- Kleinste sinnvolle Verbesserung (Schlussfolgerung)\n\
+  \  - Bei Abschluss eines Orchestrierungslaufs (auch im Fehlerfall vor Publikation)\
+  \ automatisch einen technischen WorkStep mit einer kurzen, strukturierten Zusammenfassung\
+  \ publizieren (z. B. participant→status, Fehlerursachen). Quelle: work_orchestration.py\
+  \ kennt Status/Fehler bereits.\n  - Optional zusätzlich eine schmale, rein lesende\
+  \ API-/UI-Projektion „Letzter Orchestrierungsstand je Work Item“ aus den persistierten\
+  \ IndependentRuns (ohne sie in den Wissensraum zu materialisieren). Damit wird der\
+  \ Zustand plattformweit sichtbar, ohne das kanonische Wissen zu vermischen.\n\n\
+  Priorisierung nach praktischer Bedeutung\n1) Identität/Berechtigung fehlt: Grundlage\
+  \ für verlässliche Attribution und sichere Automatisierung – ohne das ist jede weitere\
+  \ Koordination fragil. (Höchste Priorität)\n2) Keine Zuweisung/Sperre/In-Progress/Presence:\
+  \ verhindert, dass mehrere KI-Teilnehmer konfliktarm parallel arbeiten. (Hohe Priorität)\n\
+  3) Lokal nicht geteilter Orchestrierungszustand: erschwert Transparenz, Wiederaufnahme\
+  \ und robuste, selbstständige Mehrläufe über Klienten hinweg. (Mittlere bis hohe\
+  \ Priorität)\n\nHinweise zur Trennung von Tatsachen und Schlussfolgerungen\n- Belegte\
+  \ Tatsachen sind oben jeweils aus den zitierten Dokumenten und Quelltexten entnommen\
+  \ (API-Ausschlüsse, vorhandene/fehlende Felder, Speicherorte, Prompt-basierte Eingaben).\n\
+  - Die beschriebenen Auswirkungen und „kleinsten sinnvollen Verbesserungen“ sind\
+  \ Schlussfolgerungen aus diesen Befunden, mit Blick auf das Ziel „mehrere KI-Teilnehmer\
+  \ arbeiten zuverlässig und möglichst selbstständig gemeinsam“.\n\n---\nTechnisch\
+  \ nachgewiesen gelesene Atlas-Quellen waehrend dieser Untersuchung:\n- THE NORTH\
+  \ STAR/PLATFORM_STATUS.md (dokumentation)\n- THE NORTH STAR/PLATFORM_API_v1.md (dokumentation)\n\
+  - THE VAULT/work_steps/WS-0059.yaml (work_step)\n- THE NORTH STAR/PLATFORM_UX_v1.md\
+  \ (dokumentation)\n- THE NORTH STAR/PLATFORM_FRONTEND_ARCHITECTURE_v1.md (dokumentation)\n\
+  - THE NORTH STAR/WARP_STATE_MACHINE.md (dokumentation)\n- THE NORTH STAR/PROJECT_STATE.md\
+  \ (dokumentation)\n- THE NORTH STAR/PLATFORM_UI_REFERENCE_CANDIDATE_2026-07-27.md\
+  \ (dokumentation)\n- THE NORTH STAR/PLATFORM_ROADMAP.md (dokumentation)\n- THE PLATFORM/src/components/Workspace/Workspace.tsx\
+  \ (implementierung)\n- THE PLATFORM/src/api/platformBridge.ts (implementierung)\n\
+  - THE PLATFORM/src-tauri/src/main.rs (implementierung)\n- THE WORKSHOPS/platform/work_orchestration.py\
+  \ (implementierung)\n- THE WORKSHOPS/platform/independent_run.py (implementierung)\n\
+  - THE WORKSHOPS/platform/work_step.py (implementierung)\n- THE WORKSHOPS/platform/work_item.py\
+  \ (implementierung)\n- THE WORKSHOPS/platform/openai_work_step.py (implementierung)\n\
+  - THE VAULT/handoff/current.yaml (projekt_status)"
+created_at: '2026-07-28T20:38:45Z'

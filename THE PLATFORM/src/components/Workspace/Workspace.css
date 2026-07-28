@@ -29,29 +29,52 @@
   background: linear-gradient(180deg, #12141b 0%, #0d0f15 100%);
 }
 
+/* Entruempelung: Context Inspector ist keine dauerhafte dritte Spalte
+   mehr (siehe context-inspector-toggle unten) - "Gemeinsame Arbeit"
+   erhaelt dadurch den freiwerdenden Raum, ohne dass Arbeitslage/
+   Werkzeugleiste/WorkStep-Liste selbst veraendert wurden. */
 .workspace-main {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 240px 4fr 1fr;
+  grid-template-columns: 240px 1fr;
 }
 
-.object-explorer,
-.context-inspector {
+.object-explorer {
   overflow-y: auto;
   padding: 16px;
   /* Leicht abgesetzter Farbton gegenueber .workspace-content (#12151c) -
      erzeugt eine ruhige, aber wahrnehmbare Raumgrenze ohne harte Linie. */
   background: #14171f;
   position: relative;
-}
-
-.object-explorer {
   border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+/* Context Inspector: frueher eigene Spalte, jetzt eingeklappter Bereich
+   innerhalb des zentralen Arbeitsraums (siehe Workspace.tsx,
+   context-inspector-toggle) - Funktionalitaet/Komponente unveraendert,
+   nur Platzierung/Sichtbarkeit geaendert. */
 .context-inspector {
-  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 9px;
+  background: #14171f;
+}
+
+.context-inspector-toggle > summary,
+.activity-stream-toggle > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.context-inspector-toggle > summary::-webkit-details-marker,
+.activity-stream-toggle > summary::-webkit-details-marker {
+  display: none;
+}
+
+.context-inspector-toggle {
+  margin-top: 20px;
 }
 
 .workspace-content {
@@ -210,10 +233,272 @@
   padding: 5px 28px 5px 9px;
 }
 
-.workspace-model-controls label {
+.workspace-model-controls label,
+.workspace-orchestration-controls > label,
+.workspace-orchestration-controls legend,
+.refutation-order label {
   color: #8b90a0;
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+.workspace-orchestration-controls {
+  display: grid;
+  grid-template-columns: auto minmax(170px, auto) 1fr auto;
+  align-items: center;
+  gap: 8px 10px;
+  width: 100%;
+}
+
+.workspace-orchestration-controls label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.workspace-orchestration-controls fieldset {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 5px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
+}
+
+.workspace-orchestration-controls fieldset label {
+  color: #c7cad6;
+  font-size: 0.78rem;
+}
+
+.refutation-order {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.start-work-button {
+  border-color: rgba(185, 154, 99, 0.5) !important;
+  background: rgba(185, 154, 99, 0.12) !important;
+}
+
+.workspace-toolbar button:disabled,
+.workspace-toolbar select:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.orchestration-status {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 0;
+  color: #8b90a0;
+  font-size: 0.78rem;
+}
+
+.orchestration-status strong {
+  color: #b6bac6;
+  text-transform: uppercase;
+}
+
+.orchestration-status--working strong {
+  color: #d8c193;
+}
+
+.orchestration-status--completed strong {
+  color: #9fc6a8;
+}
+
+.orchestration-status--failed strong,
+.orchestration-status--aborted strong {
+  color: #e2867c;
+}
+
+.orchestration-participant-errors {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 6px;
+  color: #b6bac6;
+  font-size: 0.78rem;
+}
+
+.orchestration-participant-errors div {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 8px;
+}
+
+.orchestration-participant-errors strong {
+  color: #e2867c;
+}
+
+.orchestration-participants {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 6px;
+}
+
+.orchestration-participant {
+  display: grid;
+  grid-template-areas: "model state step error retry";
+  grid-template-columns:
+    80px minmax(190px, auto) auto minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 28px;
+  color: #b6bac6;
+  font-size: 0.78rem;
+}
+
+.orchestration-participant > strong {
+  grid-area: model;
+  color: #d7d9e0;
+}
+
+.participant-state {
+  grid-area: state;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 180px;
+}
+
+.participant-state-indicator {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.9;
+}
+
+.participant-state--pending {
+  color: #70a9e8;
+}
+
+.participant-state--working {
+  color: #d7b955;
+}
+
+.participant-state--working .participant-state-indicator::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  border-radius: inherit;
+  background: #fff0a8;
+  content: "";
+  animation: participant-working 1.05s ease-in-out infinite;
+}
+
+.participant-state--completed-pending,
+.participant-state--published {
+  color: #77c88a;
+}
+
+.participant-state--completed-pending .participant-state-indicator {
+  animation: participant-completed-pending 1.8s ease-in-out infinite;
+}
+
+.participant-state--failed,
+.participant-state--publication-failed {
+  color: #e2746c;
+}
+
+.participant-work-step {
+  grid-area: step;
+  color: #8fbc98;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.72rem;
+}
+
+.participant-error {
+  grid-area: error;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #d5a09b;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.participant-retry {
+  grid-area: retry;
+  justify-self: end;
+  width: max-content;
+  min-width: 0;
+  min-height: 26px !important;
+  padding: 3px 7px !important;
+  border-color: rgba(226, 116, 108, 0.45) !important;
+  color: #efb0aa !important;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+@keyframes participant-working {
+  from {
+    transform: translateX(-14px);
+  }
+  to {
+    transform: translateX(36px);
+  }
+}
+
+@keyframes participant-completed-pending {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .participant-state--working .participant-state-indicator::after,
+  .participant-state--completed-pending .participant-state-indicator {
+    animation: none;
+  }
+
+  .participant-state--working .participant-state-indicator {
+    background: repeating-linear-gradient(
+      90deg,
+      currentColor 0 5px,
+      transparent 5px 8px
+    );
+  }
+
+  .participant-state--completed-pending .participant-state-indicator {
+    box-shadow: 0 0 0 2px rgba(119, 200, 138, 0.28);
+  }
+}
+
+/* Entruempelung: "Work Items aktualisieren"/"Zwischenstand
+   veroeffentlichen"/"Submission erstellen" bleiben vollstaendig
+   funktionsfaehig, stehen aber nicht mehr dauerhaft in der primaeren
+   Werkzeugleiste - native <details>-Offenlegung, keine neue
+   Zustandslogik. */
+.workspace-toolbar-more > summary {
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: #6f7688;
+  list-style: none;
+}
+
+.workspace-toolbar-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.workspace-toolbar-more > summary:hover {
+  color: #d8c193;
+}
+
+.workspace-toolbar-more[open] > summary {
+  margin-bottom: 8px;
 }
 
 .workspace-error {
@@ -311,13 +596,21 @@
   text-align: center;
 }
 
-.activity-stream {
+/* Entruempelung: Activity Stream ist nicht mehr dauerhaft sichtbar,
+   sondern standardmaessig eingeklappt (siehe activity-stream-toggle in
+   Workspace.tsx) - Komponente/Daten unveraendert, nur Standardzustand
+   geaendert. */
+.activity-stream-toggle {
   flex-shrink: 0;
-  height: 140px;
-  overflow-y: auto;
-  padding: 12px 24px;
+  padding: 10px 24px;
   background: #14171f;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.activity-stream {
+  max-height: 220px;
+  overflow-y: auto;
+  padding-top: 10px;
 }
 
 /* Einheitlicher Kicker fuer alle vier Raeume - dieselbe Behandlung wie
@@ -370,5 +663,26 @@ section[aria-label="Repository-Datei suchen"] label {
 
   .workspace-toolbar {
     align-items: stretch;
+  }
+
+  .workspace-orchestration-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .orchestration-status {
+    grid-column: 1;
+  }
+
+  .orchestration-participant {
+    grid-template-areas:
+      "model state state"
+      ". step retry"
+      ". error error";
+    grid-template-columns: 80px minmax(0, 1fr) max-content;
+    align-items: start;
+  }
+
+  .participant-error {
+    padding-bottom: 2px;
   }
 }

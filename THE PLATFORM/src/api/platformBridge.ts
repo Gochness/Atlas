@@ -23,16 +23,113 @@ export interface SubmitStructuredResult {
 }
 
 export type WorkStepProvider = "openai" | "anthropic" | "gemini";
+export type WorkMode = "single" | "independent" | "refutation";
+export type WorkOrchestrationState =
+  | "ready"
+  | "working"
+  | "completed"
+  | "failed"
+  | "aborted";
 
-export async function createWorkItem(intent: string, createdBy: string): Promise<WorkItem> {
+export interface OrchestrationParticipantResult {
+  provider: WorkStepProvider;
+  phase: string;
+  status:
+    | "pending"
+    | "working"
+    | "completed_pending"
+    | "completed"
+    | "failed"
+    | "published"
+    | "publication_failed";
+  workStepId?: string;
+  participantId?: string;
+  error?: string;
+}
+
+export interface WorkOrchestrationResult {
+  success: boolean;
+  mode: WorkMode;
+  participants: WorkStepProvider[];
+  startingSnapshotIds: string[];
+  results: OrchestrationParticipantResult[];
+  error?: string;
+  runId?: string;
+}
+
+export interface WorkOrchestrationStatus {
+  state: WorkOrchestrationState;
+  mode: WorkMode;
+  phase: string;
+  message: string;
+  workItemId: string;
+  participants: WorkStepProvider[];
+  startingSnapshotIds: string[];
+  results: OrchestrationParticipantResult[];
+  runId?: string;
+}
+
+export type IndependentParticipantStatus =
+  | "pending"
+  | "working"
+  | "completed_pending"
+  | "failed"
+  | "published"
+  | "publication_failed";
+
+export type IndependentRunStatus =
+  | "running"
+  | "incomplete"
+  | "publishing"
+  | "completed"
+  | "publication_failed"
+  | "partially_published";
+
+export interface IndependentParticipantState {
+  provider: WorkStepProvider;
+  status: IndependentParticipantStatus;
+  participantId?: string;
+  error?: string;
+  workStepId?: string;
+  attemptCount: number;
+}
+
+export interface IndependentRun {
+  schemaVersion: number;
+  runId: string;
+  workItemId: string;
+  mode: "independent";
+  participants: WorkStepProvider[];
+  status: IndependentRunStatus;
+  createdAt: string;
+  updatedAt: string;
+  participantStates: IndependentParticipantState[];
+}
+
+export interface IndependentRetryResult {
+  success: boolean;
+  runId: string;
+  workItemId: string;
+  mode: "independent";
+  retriedProvider: WorkStepProvider;
+  status: IndependentRunStatus;
+  participantStates: IndependentParticipantState[];
+  error?: string;
+}
+
+// created_by wird nicht mehr uebergeben - Atlas bestimmt es selbst
+// (siehe main.rs::current_os_user()). Das zurueckgegebene WorkItem ist
+// nur ein kurzlebiger Platzhalter fuer die Anzeige, bevor Workspace.tsx
+// unmittelbar danach refreshWorkItems() aufruft und damit den echten,
+// von Atlas bestimmten createdBy-Wert aus dem Repository nachlaedt.
+export async function createWorkItem(intent: string): Promise<WorkItem> {
   const result = await invoke<CreateWorkItemResult>("create_work_item", {
     intent,
-    createdBy,
   });
   return {
     id: result.id,
     intent,
-    createdBy,
+    createdBy: "",
     status: result.status as WorkItemStatus,
     contextRefs: [],
   };
@@ -90,5 +187,43 @@ export async function generateWorkStep(
   return invoke<PublishWorkStepResult>("generate_work_step", {
     provider,
     workItemId,
+  });
+}
+
+export async function startWorkOrchestration(
+  workItemId: string,
+  mode: WorkMode,
+  participants: WorkStepProvider[],
+): Promise<WorkOrchestrationResult> {
+  return invoke<WorkOrchestrationResult>("start_work_orchestration", {
+    workItemId,
+    mode,
+    participants,
+  });
+}
+
+export async function getWorkOrchestrationStatus(): Promise<WorkOrchestrationStatus | null> {
+  return invoke<WorkOrchestrationStatus | null>("get_work_orchestration_status");
+}
+
+export async function getIndependentRun(runId: string): Promise<IndependentRun> {
+  return invoke<IndependentRun>("get_independent_run", { runId });
+}
+
+export async function findIncompleteIndependentRun(
+  workItemId: string,
+): Promise<IndependentRun | null> {
+  return invoke<IndependentRun | null>("find_incomplete_independent_run", {
+    workItemId,
+  });
+}
+
+export async function retryIndependentParticipant(
+  runId: string,
+  provider: WorkStepProvider,
+): Promise<IndependentRetryResult> {
+  return invoke<IndependentRetryResult>("retry_independent_participant", {
+    runId,
+    provider,
   });
 }

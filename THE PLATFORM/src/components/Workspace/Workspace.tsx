@@ -1,63 +1,112 @@
 import { useEffect, useState } from "react";
 import "./Workspace.css";
 import { ObjectExplorer } from "../ObjectExplorer";
-import { ActivityStream } from "../ActivityStream";
-import { ContextInspector } from "../ContextInspector";
 import { ObjectEditor } from "../ObjectEditor";
 import { Arbeitslage } from "../Arbeitslage";
 import { resolveSelection } from "../../api/mockData";
-import { realSubmissions } from "../../api/submissions";
-import { realArtifacts } from "../../api/artifacts";
 import {
-  realActivityEvents,
-  workStepActivityEvents,
-} from "../../api/activity";
+  getOrchestrationViewForWorkItem,
+  READY_ORCHESTRATION_VIEW,
+  setOrchestrationViewForWorkItem,
+  type WorkItemOrchestrationView,
+} from "../../api/orchestrationViewState";
+import {
+  canRetryIndependentParticipant,
+  independentRunLabel,
+  orchestrationStateForRun,
+  participantStatusPresentation,
+} from "../../api/independentRunView";
+import { executeIndependentRetry } from "../../api/independentRetryController";
 import {
   createWorkItem,
-  generateWorkStep,
+  findIncompleteIndependentRun,
+  getIndependentRun,
+  getWorkOrchestrationStatus,
   getWorkItems,
   getWorkSteps,
   publishWorkStep,
   resolveRepositoryFile,
+  retryIndependentParticipant,
   setWorkItemContextRefs,
+  startWorkOrchestration,
   submitStructured,
 } from "../../api/platformBridge";
-import type { WorkStepProvider } from "../../api/platformBridge";
+import type {
+  IndependentParticipantState,
+  WorkMode,
+  WorkStepProvider,
+} from "../../api/platformBridge";
 import type { PlatformObjectId, WorkItem, WorkStep } from "../../types/platform";
 
 // Workspace: die zentrale Koordinationskomponente (siehe
 // PLATFORM_FRONTEND_ARCHITECTURE_v1.md, Abschnitt 3). Sie legt die
-// raeumliche Grundstruktur aus PLATFORM_UX_v1.md an:
+// raeumliche Grundstruktur aus PLATFORM_UX_v1.md an.
 //
-//   Object Explorer (links) | Workspace (zentral) | Context Inspector (rechts)
-//   -------------------------------------------------------------------------
-//   Activity Stream (unten, ueber die volle Breite)
+// Entruempelung (WARP 2026-07-27, "Arbeitsraum auf unmittelbare
+// gemeinsame Arbeit reduzieren", zwei Schnitte):
 //
-// ObjectExplorer zeigt echte Work Items, Submissions und Artefakte.
-// Work Items werden zur Laufzeit ueber die Platform Bridge aus dem
-// Repository geladen; Submissions und Artefakte weiterhin zur Build-Zeit.
-// Die Auswahl lebt als State im Workspace
-// (selectedId) - "Zustandshoheit beim Workspace" bleibt damit gewahrt,
-// ObjectExplorer selbst haelt weiterhin keinen eigenen Zustand.
+//   Object Explorer (links, ausschliesslich Work Items)
+//   | Workspace (zentral, "Gemeinsame Arbeit" mit mehr Raum)
 //
-// ActivityStream zeigt jetzt echte Ereignisse (realActivityEvents,
-// abgeleitet aus created_at/submitted_at/"Materialisiert am" derselben
-// Repository-Dateien - siehe api/activity.ts). v0.6: Klick auf einen
-// Eintrag ruft setSelectedId(objectId) auf - derselbe Mechanismus wie
-// ObjectExplorer.onSelect, keine neue Zustandsquelle.
+// Erster Schnitt: Context Inspector und Activity Stream wurden von
+// dauerhaft sichtbaren Flaechen zu eingeklappten <details>-Bereichen.
+// Zweiter Schnitt: beide sind jetzt vollstaendig aus der normalen
+// Hauptansicht entfernt (kein Toggle, keine eingeklappte Titelzeile
+// mehr) - ebenso die Submissions-/Artefakte-Sektionen im ObjectExplorer
+// (siehe dort). Betroffen ist ausschliesslich diese Datei: die
+// Komponenten (ContextInspector, ActivityStream), ihre Daten
+// (api/submissions.ts, api/artifacts.ts, api/activity.ts) und ihre
+// Funktionalitaet sind unveraendert vorhanden, nur hier (noch) nicht
+// eingebunden - eine kuenftige eigene Navigation dafuer ist bewusst
+// noch nicht entworfen. "Work Items aktualisieren", "Zwischenstand
+// veroeffentlichen" und "Submission erstellen" bleiben unveraendert
+// hinter "Weitere Aktionen" (details in der Werkzeugleiste). Modellwahl
+// + "Modell arbeiten lassen" bleiben unveraendert sichtbar.
 //
-// ObjectEditor und ContextInspector erhalten laut Datenfluss (Architektur
-// Abschnitt 6, Schritt 5) dasselbe aktive Objekt vom Workspace: beide
-// bekommen dieselbe `selection`, abgeleitet aus selectedId ueber
-// resolveSelection() (Aequivalent einer kuenftigen get_object(id)).
+// Untersuchungszyklus V1 (WARP 2026-07-27): "Modell arbeiten lassen" kann
+// jetzt einen Mehrschrittprozess ausloesen, in dem das Modell selbst
+// innerhalb des Atlas-Wissensraums sucht/liest, bevor es antwortet (siehe
+// atlas_search.py, openai/anthropic/gemini_work_step.py). Der Tauri-Aufruf
+// bleibt die fachliche Untersuchungslogik der Modelladapter. Die
+// Orchestrierung fragt waehrend des laenger laufenden Tauri-Aufrufs
+// ausschliesslich dessen technischen Status ab, damit Arbeitsweise,
+// aktive Phase und Fehler/Abbruch sichtbar bleiben.
 //
-// Erster echter Schreibpfad: onNewObject fragt intent/created_by ueber
-// window.prompt() ab (minimaler Durchstich, kein neues UX-Konzept) und
-// ruft createWorkItem() auf, das den Tauri-Command create_work_item
-// aufruft - dieser fuehrt wiederum das bestehende work_item.py als
-// Subprozess aus (Shell-Bootstrap, siehe ARCHITECTURE_NOTES.md und
-// src-tauri/src/main.rs). Anschliessend wird die Work-Item-Liste ueber
-// denselben Laufzeitpfad aus dem Repository neu geladen.
+// ObjectExplorer zeigt echte Work Items, zur Laufzeit ueber die
+// Platform Bridge aus dem Repository geladen. Die Auswahl lebt als
+// State im Workspace (selectedId) - "Zustandshoheit beim Workspace"
+// bleibt damit gewahrt, ObjectExplorer selbst haelt weiterhin keinen
+// eigenen Zustand.
+//
+// ObjectEditor erhaelt laut Datenfluss (Architektur Abschnitt 6,
+// Schritt 5) das aktive Objekt vom Workspace: `selection`, abgeleitet
+// aus selectedId ueber resolveSelection() (Aequivalent einer
+// kuenftigen get_object(id)).
+//
+// Erster echter Schreibpfad: onNewObject ("+ Neue Arbeit") oeffnet ein
+// Formular mit einer Textarea fuer den vollstaendigen Arbeitsauftrag
+// (new-work-item-form) und ruft createWorkItem(intent) auf, das den
+// Tauri-Command create_work_item aufruft - dieser fuehrt wiederum das
+// bestehende work_item.py als Subprozess aus (Shell-Bootstrap, siehe
+// ARCHITECTURE_NOTES.md und src-tauri/src/main.rs). Anschliessend wird
+// die Work-Item-Liste ueber denselben Laufzeitpfad aus dem Repository
+// neu geladen.
+//
+// Fundament-Schritt (WARP 2026-07-27, "vollstaendiger Arbeitsauftrag
+// ohne technische Eingabe"): created_by wird NICHT mehr abgefragt -
+// Atlas bestimmt es selbst aus dem angemeldeten Windows-Benutzerkonto
+// (main.rs::current_os_user()). Grund: Der bekannte Fehlzustand von
+// WI-0020 entstand genau dadurch, dass der fruehere zweite Prompt
+// ("Erstellt von (created_by):") mit dem eigentlichen, ausfuehrlichen
+// Arbeitsauftrag befuellt wurde, waehrend das kurze intent-Prompt nur
+// einen Titel erhielt - _build_context() (openai_work_step.py) liest
+// jedoch ausschliesslich work_item.intent, nie created_by. Der Fix
+// nimmt created_by deshalb NICHT in _build_context() auf (das wuerde
+// die Verwechslung zum Design erheben), sondern entfernt die
+// Verwechslungsmoeglichkeit an der Wurzel: es gibt nur noch ein
+// einziges Eingabefeld (die Textarea fuer den Arbeitsauftrag), das
+// direkt in intent geschrieben wird - dem Feld, das der Modellkontext
+// bereits immer gelesen hat.
 //
 // Zweiter Schreibpfad fuer den Zwei-Modell-Test: Fuer ein ausgewaehltes
 // Work Item kann ein sichtbarer Zwischenstand veroeffentlicht werden.
@@ -105,24 +154,23 @@ import type { PlatformObjectId, WorkItem, WorkStep } from "../../types/platform"
 //     @keyframes in Workspace.css) - keine Dauerschleife, keine
 //     Aktivitaetssimulation.
 //
-// v0.6 Activity-Stream-Entkopplung: Der Activity Stream soll eine globale
-// Chronik sein, nicht von selectedId abhaengen. workStepActivityEvents()
-// (api/activity.ts) war dafuer bereits unabhaengig nutzbar - die
-// Einschraenkung lag ausschliesslich am selektionsgebundenen workSteps-
-// State. Neuer, separater State allWorkSteps wird geladen, sobald sich
-// workItems aendert (Promise.all ueber die bereits vorhandene
-// getWorkSteps()-Bridge, ein Aufruf pro Work Item - bei aktuell rund 20
-// Work Items unproblematisch, keine neue Backend-/Tauri-Funktion noetig).
-// workSteps (selektionsgebunden) bleibt fuer Arbeitslage und "Gemeinsame
-// Arbeit" unveraendert bestehen - beide sollen weiterhin nur das aktuell
-// gewaehlte Work Item zeigen.
+// v0.6 hatte hier einen zusaetzlichen State allWorkSteps eingefuehrt
+// (Promise.all ueber alle Work Items), ausschliesslich um eine globale,
+// selektionsunabhaengige Chronik fuer den Activity Stream zu speisen
+// (workStepActivityEvents() aus api/activity.ts). Im zweiten
+// Aufraeumschnitt (WARP 2026-07-27) wurde diese lokale Verdrahtung mit
+// dem Activity Stream selbst entfernt (siehe Kommentar oben) -
+// workStepActivityEvents() bleibt in api/activity.ts unveraendert
+// nutzbar, sobald die Anzeige wieder eingebunden wird. workSteps
+// (selektionsgebunden) bleibt fuer Arbeitslage und "Gemeinsame Arbeit"
+// unveraendert bestehen - zeigt weiterhin nur das aktuell gewaehlte
+// Work Item.
 export function Workspace() {
   const [selectedId, setSelectedId] = useState<PlatformObjectId | null>(null);
   const [workItems, setWorkItems] = useState<WorkItem[]>([]);
   const [workItemsError, setWorkItemsError] = useState<string | null>(null);
   const [workSteps, setWorkSteps] = useState<WorkStep[]>([]);
   const [workStepsError, setWorkStepsError] = useState<string | null>(null);
-  const [allWorkSteps, setAllWorkSteps] = useState<WorkStep[]>([]);
   const [repositoryFilename, setRepositoryFilename] = useState("");
   const [repositoryFileMatches, setRepositoryFileMatches] = useState<string[]>(
     [],
@@ -133,14 +181,35 @@ export function Workspace() {
   const [contextRefsEditorWorkItemId, setContextRefsEditorWorkItemId] =
     useState<string | null>(null);
   const [contextRefsDraft, setContextRefsDraft] = useState("");
-  const [workStepProvider, setWorkStepProvider] =
-    useState<WorkStepProvider>("openai");
+  const [newWorkItemFormOpen, setNewWorkItemFormOpen] = useState(false);
+  const [newWorkItemDraft, setNewWorkItemDraft] = useState("");
+  const [workMode, setWorkMode] = useState<WorkMode>("single");
+  const [selectedParticipants, setSelectedParticipants] =
+    useState<WorkStepProvider[]>(["openai"]);
+  const [workRunning, setWorkRunning] = useState(false);
+  const [retryingProvider, setRetryingProvider] =
+    useState<WorkStepProvider | null>(null);
+  const [orchestrationViews, setOrchestrationViews] = useState<
+    Record<string, WorkItemOrchestrationView>
+  >({});
   const selection = resolveSelection(selectedId, workItems);
-  const activityEvents = [
-    ...realActivityEvents,
-    ...workStepActivityEvents(allWorkSteps),
-  ].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
   const selectedWorkItem = workItems.find((w) => w.id === selectedId) ?? null;
+  const selectedOrchestrationView = getOrchestrationViewForWorkItem(
+    orchestrationViews,
+    selectedId,
+  );
+  const workState = selectedOrchestrationView.state;
+  const workStatusMessage = selectedOrchestrationView.message;
+  const workParticipantResults = selectedOrchestrationView.results;
+
+  function setWorkItemOrchestrationView(
+    workItemId: string,
+    view: WorkItemOrchestrationView,
+  ) {
+    setOrchestrationViews((current) =>
+      setOrchestrationViewForWorkItem(current, workItemId, view),
+    );
+  }
 
   async function refreshWorkItems() {
     try {
@@ -166,31 +235,6 @@ export function Workspace() {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadAllWorkSteps() {
-      try {
-        const results = await Promise.all(
-          workItems.map((workItem) => getWorkSteps(workItem.id)),
-        );
-        if (!cancelled) {
-          setAllWorkSteps(results.flat());
-        }
-      } catch {
-        if (!cancelled) {
-          setAllWorkSteps([]);
-        }
-      }
-    }
-
-    void loadAllWorkSteps();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [workItems]);
-
-  useEffect(() => {
     if (!selectedId?.startsWith("WI-")) {
       setWorkSteps([]);
       setWorkStepsError(null);
@@ -200,17 +244,44 @@ export function Workspace() {
     void refreshWorkSteps(selectedId);
   }, [selectedId]);
 
-  async function handleNewObject() {
-    const intent = window.prompt("Intent des neuen Work Items:");
-    if (!intent || !intent.trim()) return;
+  useEffect(() => {
+    if (!selectedId?.startsWith("WI-")) return;
+    const workItemId = selectedId;
+    void findIncompleteIndependentRun(workItemId)
+      .then((run) => {
+        if (!run) return;
+        setWorkItemOrchestrationView(workItemId, {
+          state: orchestrationStateForRun(run.status),
+          message: independentRunLabel(run.status),
+          results: [],
+          run,
+        });
+      })
+      .catch(() => {
+        // Ein fehlender/noch nicht lesbarer Betriebszustand darf die
+        // normale Work-Item-Auswahl nicht blockieren.
+      });
+  }, [selectedId]);
 
-    const createdBy = window.prompt("Erstellt von (created_by):");
-    if (!createdBy || !createdBy.trim()) return;
+  function handleOpenNewWorkItem() {
+    setNewWorkItemFormOpen(true);
+  }
+
+  function handleCancelNewWorkItem() {
+    setNewWorkItemFormOpen(false);
+    setNewWorkItemDraft("");
+  }
+
+  async function handleCreateWorkItem() {
+    const intent = newWorkItemDraft.trim();
+    if (!intent) return;
 
     try {
-      const workItem = await createWorkItem(intent.trim(), createdBy.trim());
+      const workItem = await createWorkItem(intent);
       await refreshWorkItems();
       setSelectedId(workItem.id);
+      setNewWorkItemFormOpen(false);
+      setNewWorkItemDraft("");
     } catch (err) {
       window.alert(`Work Item konnte nicht erstellt werden: ${err}`);
     }
@@ -334,18 +405,195 @@ export function Workspace() {
     setContextRefsDraft("");
   }
 
-  async function handleGenerateWorkStep() {
+  function handleWorkModeChange(mode: WorkMode) {
+    setWorkMode(mode);
+    setSelectedParticipants(
+      mode === "single"
+        ? ["openai"]
+        : mode === "independent"
+          ? ["openai", "anthropic"]
+          : ["openai", "anthropic", "gemini"],
+    );
+    if (selectedId?.startsWith("WI-")) {
+      setWorkItemOrchestrationView(selectedId, READY_ORCHESTRATION_VIEW);
+    }
+  }
+
+  function toggleIndependentParticipant(provider: WorkStepProvider) {
+    setSelectedParticipants((current) =>
+      current.includes(provider)
+        ? current.filter((item) => item !== provider)
+        : [...current, provider],
+    );
+  }
+
+  function setRefutationParticipant(index: number, provider: WorkStepProvider) {
+    setSelectedParticipants((current) =>
+      current.map((item, itemIndex) => (itemIndex === index ? provider : item)),
+    );
+  }
+
+  function orchestrationConfigurationError(): string | null {
+    if (workMode === "single" && selectedParticipants.length !== 1) {
+      return "Einzeluntersuchung erfordert genau einen Teilnehmer.";
+    }
+    if (workMode === "independent" && selectedParticipants.length < 2) {
+      return "Unabhängige Untersuchung erfordert mindestens zwei Teilnehmer.";
+    }
+    if (workMode === "refutation") {
+      if (selectedParticipants.length !== 3) {
+        return "Widerlegungsprüfung erfordert X, Y und Z.";
+      }
+      if (new Set(selectedParticipants).size !== 3) {
+        return "X, Y und Z müssen unterschiedliche Teilnehmer sein.";
+      }
+    }
+    return null;
+  }
+
+  async function handleStartWork() {
     if (!selectedId || !selectedId.startsWith("WI-")) {
       window.alert("Bitte zuerst ein Work Item auswaehlen.");
       return;
     }
+    const workItemId = selectedId;
+    const configurationError = orchestrationConfigurationError();
+    if (configurationError) {
+      setWorkItemOrchestrationView(workItemId, {
+        state: "failed",
+        message: configurationError,
+        results: [],
+      });
+      return;
+    }
 
+    setWorkRunning(true);
+    setWorkItemOrchestrationView(workItemId, {
+      state: "working",
+      message: "Atlas startet die Arbeit …",
+      results: [],
+    });
+    let finished = false;
     try {
-      const result = await generateWorkStep(workStepProvider, selectedId);
-      await refreshWorkSteps(selectedId);
-      window.alert(`Modell-Zwischenstand ${result.id} wurde erzeugt.`);
+      const orchestration = startWorkOrchestration(
+        workItemId,
+        workMode,
+        selectedParticipants,
+      ).finally(() => {
+        finished = true;
+      });
+
+      while (!finished) {
+        await new Promise((resolve) => window.setTimeout(resolve, 400));
+        const status = await getWorkOrchestrationStatus();
+        if (status && status.workItemId === workItemId) {
+          const run = status.runId
+            ? await getIndependentRun(status.runId).catch(() => undefined)
+            : undefined;
+          setWorkItemOrchestrationView(workItemId, {
+            state: run
+              ? orchestrationStateForRun(run.status)
+              : status.state,
+            message: run
+              ? independentRunLabel(run.status)
+              : status.message,
+            results: status.results,
+            run,
+          });
+        }
+      }
+
+      const result = await orchestration;
+      await refreshWorkSteps(workItemId);
+      const persistentRun = result.runId
+        ? await getIndependentRun(result.runId).catch(() => undefined)
+        : undefined;
+      if (result.success) {
+        setWorkItemOrchestrationView(workItemId, {
+          state: persistentRun
+            ? orchestrationStateForRun(persistentRun.status)
+            : "completed",
+          message: persistentRun
+            ? independentRunLabel(persistentRun.status)
+            : `Abgeschlossen: ${result.results.length} WorkStep${
+                result.results.length === 1 ? "" : "s"
+              } erzeugt.`,
+          results: result.results,
+          run: persistentRun,
+        });
+      } else {
+        const status = await getWorkOrchestrationStatus();
+        setWorkItemOrchestrationView(workItemId, {
+          state: persistentRun
+            ? orchestrationStateForRun(persistentRun.status)
+            : status?.workItemId === workItemId
+              ? status.state
+              : "failed",
+          message: persistentRun
+            ? independentRunLabel(persistentRun.status)
+            : result.error ?? "Arbeit fehlgeschlagen.",
+          results: result.results,
+          run: persistentRun,
+        });
+      }
     } catch (err) {
-      window.alert(`Modell konnte keinen Zwischenstand erzeugen: ${err}`);
+      setWorkItemOrchestrationView(workItemId, {
+        state: "failed",
+        message: `Arbeit fehlgeschlagen: ${err}`,
+        results: [],
+      });
+    } finally {
+      setWorkRunning(false);
+    }
+  }
+
+  async function handleRetryIndependentParticipant(
+    participant: IndependentParticipantState,
+  ) {
+    const run = selectedOrchestrationView.run;
+    if (
+      !selectedId
+      || !run
+      || !canRetryIndependentParticipant(run.status, participant.status)
+    ) {
+      return;
+    }
+    const workItemId = selectedId;
+    try {
+      const { result, run: currentRun } = await executeIndependentRetry(
+        run.runId,
+        participant.provider,
+        {
+          retry: retryIndependentParticipant,
+          load: getIndependentRun,
+          onBusyChange: setRetryingProvider,
+          onRun: (updatedRun) => {
+            setWorkItemOrchestrationView(workItemId, {
+              state: orchestrationStateForRun(updatedRun.status),
+              message: independentRunLabel(updatedRun.status),
+              results: [],
+              run: updatedRun,
+            });
+          },
+        },
+      );
+      setWorkItemOrchestrationView(workItemId, {
+        state: orchestrationStateForRun(currentRun.status),
+        message: result.error ?? independentRunLabel(currentRun.status),
+        results: [],
+        run: currentRun,
+      });
+      await refreshWorkSteps(workItemId);
+    } catch (err) {
+      const currentRun = await getIndependentRun(run.runId).catch(
+        () => run,
+      );
+      setWorkItemOrchestrationView(workItemId, {
+        state: orchestrationStateForRun(currentRun.status),
+        message: `Wiederholen nicht möglich: ${err}`,
+        results: [],
+        run: currentRun,
+      });
     }
   }
 
@@ -373,16 +621,41 @@ export function Workspace() {
         <aside className="object-explorer" aria-label="Object Explorer">
           <ObjectExplorer
             workItems={workItems}
-            submissions={realSubmissions}
-            artifacts={realArtifacts}
             selectedId={selectedId}
             onSelect={setSelectedId}
-            onNewObject={handleNewObject}
+            onNewObject={handleOpenNewWorkItem}
           />
         </aside>
 
         <main className="workspace-content">
         <div className="workspace-room" key={selectedId ?? "empty"}>
+          {newWorkItemFormOpen ? (
+            <form
+              className="new-work-item-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void handleCreateWorkItem();
+              }}
+            >
+              <label htmlFor="new-work-item-intent">
+                Beschreibe die Arbeit/Aufgabe (so ausführlich wie nötig):
+              </label>
+              <br />
+              <textarea
+                id="new-work-item-intent"
+                rows={8}
+                autoFocus
+                value={newWorkItemDraft}
+                onChange={(event) => setNewWorkItemDraft(event.target.value)}
+              />
+              <br />
+              <button type="submit">Erstellen</button>{" "}
+              <button type="button" onClick={handleCancelNewWorkItem}>
+                Abbrechen
+              </button>
+            </form>
+          ) : null}
+
           {selectedWorkItem ? (
             <header
               className={
@@ -413,35 +686,213 @@ export function Workspace() {
           ) : null}
 
           <div className="workspace-toolbar" aria-label="Werkzeugleiste">
-            <div className="workspace-toolbar-group">
-              <button type="button" onClick={() => void refreshWorkItems()}>
-                Work Items aktualisieren
-              </button>
-              <button type="button" onClick={handlePublishWorkStep}>
-                Zwischenstand veröffentlichen
-              </button>
-              <button type="button" onClick={() => void handleSubmitStructured()}>
-                Submission erstellen
-              </button>
-            </div>
-
-            <div className="workspace-toolbar-group workspace-model-controls">
-              <label htmlFor="work-step-provider">Modell</label>
+            <div className="workspace-orchestration-controls">
+              <label htmlFor="work-mode">Arbeitsweise</label>
               <select
-                id="work-step-provider"
-                value={workStepProvider}
+                id="work-mode"
+                value={workMode}
                 onChange={(event) =>
-                  setWorkStepProvider(event.target.value as WorkStepProvider)
+                  handleWorkModeChange(event.target.value as WorkMode)
+                }
+                disabled={workRunning}
+              >
+                <option value="single">Einzeluntersuchung</option>
+                <option value="independent">Unabhängige Untersuchung</option>
+                <option value="refutation">Widerlegungsprüfung</option>
+              </select>
+
+              {workMode === "single" ? (
+                <label>
+                  Teilnehmer
+                  <select
+                    value={selectedParticipants[0]}
+                    onChange={(event) =>
+                      setSelectedParticipants([
+                        event.target.value as WorkStepProvider,
+                      ])
+                    }
+                    disabled={workRunning}
+                  >
+                    <option value="openai">OpenAI</option>
+                    <option value="anthropic">Claude</option>
+                    <option value="gemini">Gemini</option>
+                  </select>
+                </label>
+              ) : null}
+
+              {workMode === "independent" ? (
+                <fieldset disabled={workRunning}>
+                  <legend>Teilnehmer</legend>
+                  {(["openai", "anthropic", "gemini"] as WorkStepProvider[]).map(
+                    (provider) => (
+                      <label key={provider}>
+                        <input
+                          type="checkbox"
+                          checked={selectedParticipants.includes(provider)}
+                          onChange={() => toggleIndependentParticipant(provider)}
+                        />
+                        {provider === "anthropic"
+                          ? "Claude"
+                          : provider === "openai"
+                            ? "OpenAI"
+                            : "Gemini"}
+                      </label>
+                    ),
+                  )}
+                </fieldset>
+              ) : null}
+
+              {workMode === "refutation" ? (
+                <div className="refutation-order" aria-label="Reihenfolge X Y Z">
+                  {(["X", "Y", "Z"] as const).map((phase, index) => (
+                    <label key={phase}>
+                      {phase}
+                      <select
+                        value={selectedParticipants[index]}
+                        onChange={(event) =>
+                          setRefutationParticipant(
+                            index,
+                            event.target.value as WorkStepProvider,
+                          )
+                        }
+                        disabled={workRunning}
+                      >
+                        <option value="openai">OpenAI</option>
+                        <option value="anthropic">Claude</option>
+                        <option value="gemini">Gemini</option>
+                      </select>
+                    </label>
+                  ))}
+                </div>
+              ) : null}
+
+              <button
+                type="button"
+                className="start-work-button"
+                onClick={handleStartWork}
+                disabled={
+                  workRunning ||
+                  !selectedWorkItem ||
+                  orchestrationConfigurationError() !== null
                 }
               >
-                <option value="openai">OpenAI</option>
-                <option value="anthropic">Claude</option>
-                <option value="gemini">Gemini</option>
-              </select>
-              <button type="button" onClick={handleGenerateWorkStep}>
-                Modell arbeiten lassen
+                Arbeit starten
               </button>
+
+              <p
+                className={`orchestration-status orchestration-status--${workState}`}
+                role="status"
+              >
+                <strong>
+                  {selectedOrchestrationView.run?.status ?? workState}
+                </strong>
+                <span>{workStatusMessage}</span>
+              </p>
+              {selectedOrchestrationView.run ? (
+                <div
+                  className="orchestration-participants"
+                  aria-label="Teilnehmerstatus"
+                >
+                  {selectedOrchestrationView.run.participantStates.map(
+                    (participant) => {
+                      const presentation = participantStatusPresentation(
+                        participant.status,
+                      );
+                      const canRetry = canRetryIndependentParticipant(
+                        selectedOrchestrationView.run!.status,
+                        participant.status,
+                      );
+                      return (
+                        <div
+                          className="orchestration-participant"
+                          key={participant.provider}
+                        >
+                          <strong>
+                            {participant.provider === "openai"
+                              ? "OpenAI"
+                              : participant.provider === "anthropic"
+                                ? "Anthropic"
+                                : "Gemini"}
+                          </strong>
+                          <span
+                            className={`participant-state participant-state--${presentation.modifier}`}
+                          >
+                            <span
+                              className="participant-state-indicator"
+                              aria-hidden="true"
+                            />
+                            <span>{presentation.label}</span>
+                          </span>
+                          {participant.workStepId ? (
+                            <span className="participant-work-step">
+                              {participant.workStepId}
+                            </span>
+                          ) : null}
+                          {participant.error ? (
+                            <span className="participant-error">
+                              {participant.error}
+                            </span>
+                          ) : null}
+                          {canRetry ? (
+                            <button
+                              type="button"
+                              className="participant-retry"
+                              disabled={retryingProvider !== null}
+                              onClick={() =>
+                                void handleRetryIndependentParticipant(
+                                  participant,
+                                )
+                              }
+                            >
+                              {retryingProvider === participant.provider
+                                ? "Wird wiederholt …"
+                                : "Wiederholen"}
+                            </button>
+                          ) : null}
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
+              ) : workParticipantResults.some(
+                (result) => result.status === "failed",
+              ) && (
+                <div className="orchestration-participant-errors">
+                  {workParticipantResults
+                    .filter((result) => result.status === "failed")
+                    .map((result) => (
+                      <div key={`${result.provider}-${result.phase}`}>
+                        <strong>
+                          {result.provider === "openai"
+                            ? "OpenAI"
+                            : result.provider === "anthropic"
+                              ? "Anthropic"
+                              : "Gemini"}
+                        </strong>
+                        <span>
+                          Fehlgeschlagen:{" "}
+                          {result.error ?? "Keine Fehlerursache verfügbar."}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              )}
             </div>
+
+            <details className="workspace-toolbar-more">
+              <summary>Weitere Aktionen</summary>
+              <div className="workspace-toolbar-group">
+                <button type="button" onClick={() => void refreshWorkItems()}>
+                  Work Items aktualisieren
+                </button>
+                <button type="button" onClick={handlePublishWorkStep}>
+                  Zwischenstand veröffentlichen
+                </button>
+                <button type="button" onClick={() => void handleSubmitStructured()}>
+                  Submission erstellen
+                </button>
+              </div>
+            </details>
           </div>
           {workItemsError ? (
             <p className="workspace-error">
@@ -546,20 +997,7 @@ export function Workspace() {
           />
         </div>
         </main>
-
-        <aside className="context-inspector" aria-label="Context Inspector">
-          <p className="placeholder-label">Context Inspector</p>
-          <ContextInspector selection={selection} />
-        </aside>
       </div>
-
-      <footer className="activity-stream" aria-label="Activity Stream">
-        <p className="placeholder-label">Activity Stream</p>
-        <ActivityStream
-          events={activityEvents}
-          onSelect={setSelectedId}
-        />
-      </footer>
     </div>
   );
 }
