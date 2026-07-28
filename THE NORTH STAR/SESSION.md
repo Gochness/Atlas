@@ -666,3 +666,49 @@ Abschluss von `WI-0018` wird hierzu keine neue Regel festgelegt.
 
 Es wurde keine darüber hinausgehende Submission-Architektur oder Folgearbeit
 beschlossen.
+
+------------------------------------------------------------------------
+
+## 2026-07-28 - IndependentRun-Zyklus abgeschlossen
+
+Der Plattform-Zyklus fuer persistente IndependentRuns, verzoegerte
+gemeinsame Publikation und manuellen Teilnehmer-Retry ist abgeschlossen
+und mit Commit
+`cbfafc7151a186be3a5faccbd735ff4267967826`
+gesichert.
+
+WI-0036 hat den vollstaendigen realen End-to-End-Pfad erfolgreich
+durchlaufen:
+
+- OpenAI -> WS-0078
+- Anthropic -> WS-0079
+- Gemini -> WS-0080
+- Gesamtlauf `completed`
+- alle drei WorkSteps erst nach Erfolg aller Teilnehmer gemeinsam
+  publiziert
+
+Providerfehler und mehrere manuelle Retries traten real auf.
+Erfolgreiche Beitraege blieben bis zur gemeinsamen Publikationsgrenze
+`completed_pending` und fuer andere Teilnehmer isoliert.
+
+Anthropic HTTP 400 wurde durch die sichere Diagnose als zu niedriges
+API-Guthaben identifiziert, nicht als Atlas-Requestfehler. Danach wurde
+ein realer Read-Timeout beobachtet. Alle tatsaechlich verwendeten
+Provider-Requestpfade verwenden nun den pragmatischen Betriebswert von
+100 Sekunden.
+
+Der vollstaendige Abschlussstand, die offenen Grenzen und der bewusst
+dirty gebliebene Fremdstand sind in
+`THE VAULT/WARP/WARP-2026-07-28.md` dokumentiert.
+
+### Aktueller Status
+
+Der Fokus ist nicht weiterer Retry-Bau. Die implementierte
+IndependentRun-/Retry-Grenze ist real nachgewiesen.
+
+### Naechste Aktion
+
+Noch keine Produktloesung vorwegnehmen. Aus den verbliebenen
+Single-Session-/Single-Actor-Annahmen den naechsten
+Produkt-/Untersuchungsschritt bewusst auswaehlen. Der visuelle Abgleich
+der UI mit der vorhandenen Atlas-Referenzoberflaeche bleibt offen.

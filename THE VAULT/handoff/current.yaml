@@ -1,6 +1,6 @@
-timestamp: 2026-07-26T22:14:55Z
+timestamp: 2026-07-28T20:50:00Z
 active: codex
-head: 6a37550b871b48336d326c846ec5a92b5a4072e6
-focus: WI-0018 technisch abgeschlossen; kontrollierter IPC-Pfad bis zum Submission-Adapter bestaetigt
-next: keine Folgearbeit beschlossen; epistemische Bedeutung und Herleitung von base_commit bleiben offen
-status: completed
+head: cbfafc7151a186be3a5faccbd735ff4267967826
+focus: Plattformzyklus fuer persistente IndependentRuns, completed_pending, manuellen Teilnehmer-Retry, UI-/Tauri-Anbindung, Providerdiagnose und einheitliche 100-Sekunden-Timeouts abgeschlossen; WI-0036 E2E real completed mit WS-0078, WS-0079 und WS-0080
+next: Noch keinen weiteren Retry-Bau beginnen. Naechsten Produkt-/Untersuchungsschritt bewusst aus den verbliebenen Single-Session-/Single-Actor-Annahmen waehlen; visueller UI-Referenzabgleich bleibt offen. Keine Architekturentscheidung ist vorweggenommen.
+status: synchron
